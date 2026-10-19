@@ -1,0 +1,1523 @@
+/* =====================================================================
+ *  2028 WEDDING QUEST — 2D Top-down RPG Prototype (single file)
+ *  React + Tailwind CSS + Framer Motion + Lucide-react
+ *  모든 그래픽은 인라인 픽셀 SVG(shapeRendering="crispEdges")로만 그립니다.
+ * ===================================================================== */
+import React, { useState, useEffect, useRef, useMemo, memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart, RotateCcw, Sparkles } from "lucide-react";
+
+/* =====================================================================
+ *  1. QUEST DATA — 실제 기획 텍스트는 여기만 갈아끼우면 됩니다.
+ *  x, y      : 바위(2x2 타일 블록)의 좌상단 타일 좌표 (1타일 = 32px)
+ *  sign      : 나무 표지판 위치 (x = 중심 타일, y = 바닥 타일), arrow: 'left' | 'right'
+ *  dialogs   : speaker 'seoyeon' | 'jaehoon',  expression 'default' | 'smile' | 'determined' | 'heart'
+ *  modalContent.type : 'timeline' | 'compare' | 'checklist'
+ * ===================================================================== */
+export const QUEST_GATES = [
+  {
+    id: 1, x: 3, y: 8,
+    sign: { x: 5.6, y: 7.7, arrow: "right" },
+    dialogs: [
+      { speaker: "seoyeon", expression: "default", text: "앗, 길이 커다란 바위로 막혀 있어! 황금 자물쇠까지 채워져 있네?" },
+      { speaker: "jaehoon", expression: "determined", text: "첫 번째 관문은 '상견례'래. 양가 일정부터 차근차근 맞춰보자!" },
+      { speaker: "seoyeon", expression: "smile", text: "좋아! 우리 둘이 같이 준비하면 금방이지." },
+    ],
+    modalTitle: "STAGE 1 · 상견례 로드맵",
+    modalContent: {
+      type: "timeline",
+      caption: "양가 인사부터 상견례까지 핵심 일정 (더미 데이터)",
+      steps: [
+        { label: "D-600", title: "각자 부모님께 먼저 인사", desc: "결혼 소식 공유 · 분위기 살피기" },
+        { label: "D-570", title: "상견례 장소 예약", desc: "양가 중간 지점 한정식집 · 룸 확보" },
+        { label: "D-540", title: "상견례 당일", desc: "예식 시기 · 규모 큰 방향 합의" },
+      ],
+    },
+  },
+  {
+    id: 2, x: 7, y: 13,
+    sign: { x: 6.1, y: 12.9, arrow: "right" },
+    dialogs: [
+      { speaker: "jaehoon", expression: "default", text: "두 번째 바위다. 여긴 '예산' 관문이라고 적혀 있어." },
+      { speaker: "seoyeon", expression: "determined", text: "Plan A로 갈지 Plan B로 갈지, 오늘 확실히 정하자!" },
+      { speaker: "jaehoon", expression: "smile", text: "비교표 펼쳐볼게. 하나씩 같이 보자." },
+    ],
+    modalTitle: "PLAN A vs PLAN B",
+    modalContent: {
+      type: "compare",
+      caption: "웨딩 예산 플랜 비교 (더미 데이터)",
+      left: { title: "PLAN A", sub: "(실속형)", wedding: false },
+      right: { title: "PLAN B", sub: "(풀패키지)", wedding: true },
+      rows: [
+        { a: "하객 80명 스몰", aOk: true, b: "하객 250명", bOk: false },
+        { a: "기본 데코", aOk: true, b: "플라워 풀장식", bOk: false },
+        { a: "예산 3,000만", aOk: true, b: "예산 7,000만", bOk: false },
+      ],
+    },
+  },
+  {
+    id: 3, x: 12, y: 8,
+    sign: { x: 14.6, y: 11.2, arrow: "right" },
+    dialogs: [
+      { speaker: "seoyeon", expression: "default", text: "세 번째는 '웨딩홀 투어' 관문이야. 체크리스트가 붙어 있어!" },
+      { speaker: "jaehoon", expression: "smile", text: "거의 다 했네. 마지막 계약만 남았어." },
+    ],
+    modalTitle: "STAGE 3 · 웨딩홀 체크리스트",
+    modalContent: {
+      type: "checklist",
+      caption: "투어 후 확인 항목 (더미 데이터)",
+      items: [
+        { text: "웨딩홀 3곳 투어 완료", done: true },
+        { text: "식대 · 보증인원 비교표 작성", done: true },
+        { text: "주차 · 대중교통 동선 확인", done: true },
+        { text: "최종 계약 & 계약금 입금", done: false },
+      ],
+    },
+  },
+  {
+    id: 4, x: 16, y: 3,
+    sign: { x: 14.9, y: 2.9, arrow: "left" },
+    dialogs: [
+      { speaker: "jaehoon", expression: "determined", text: "네 번째 관문, '신혼집'이야. 이게 제일 큰 바위 같은데?" },
+      { speaker: "seoyeon", expression: "default", text: "출퇴근 거리랑 예산, 둘 다 따져봐야 해." },
+      { speaker: "seoyeon", expression: "smile", text: "그래도 우리 집이 생긴다니 너무 설렌다!" },
+    ],
+    modalTitle: "HOUSE A vs HOUSE B",
+    modalContent: {
+      type: "compare",
+      caption: "신혼집 후보 비교 (더미 데이터)",
+      left: { title: "HOUSE A", sub: "(역세권 전세)", wedding: false },
+      right: { title: "HOUSE B", sub: "(신축 매매)", wedding: false },
+      rows: [
+        { a: "출퇴근 25분", aOk: true, b: "출퇴근 55분", bOk: false },
+        { a: "보증금 3억", aOk: true, b: "매매가 6억", bOk: false },
+        { a: "구축 리모델링", aOk: false, b: "신축 입주", bOk: true },
+      ],
+    },
+  },
+  {
+    id: 5, x: 21, y: 9,
+    sign: { x: 20.3, y: 8.6, arrow: "left" },
+    dialogs: [
+      { speaker: "seoyeon", expression: "determined", text: "마지막 바위야! 이것만 열면 웨딩 아치까지 바로야!" },
+      { speaker: "jaehoon", expression: "heart", text: "'스드메 & 청첩장' 관문… 우리 진짜 결혼하는구나." },
+      { speaker: "seoyeon", expression: "heart", text: "응! 끝까지 같이 가자!" },
+    ],
+    modalTitle: "STAGE 5 · D-DAY 카운트다운",
+    modalContent: {
+      type: "timeline",
+      caption: "본식까지 남은 마일스톤 (더미 데이터)",
+      steps: [
+        { label: "D-120", title: "스튜디오 촬영", desc: "야외 1컷 + 실내 3컨셉" },
+        { label: "D-90", title: "드레스 · 메이크업 확정", desc: "가봉 2회 · 리허설 메이크업" },
+        { label: "D-60", title: "청첩장 발송", desc: "모바일 + 종이 청첩장 200부" },
+        { label: "D-DAY", title: "2028 WEDDING", desc: "벚꽃 아치 아래에서 만나요" },
+      ],
+    },
+  },
+];
+
+export const INTRO_DIALOGS = [
+  { speaker: "seoyeon", expression: "smile", text: "드디어 출발이야! 저 끝의 2028 웨딩 아치까지 함께 가보자." },
+  { speaker: "jaehoon", expression: "default", text: "가는 길에 자물쇠 바위가 5개 있대. 방향키나 WASD로 움직이고, 바위 앞에서 Space를 눌러봐." },
+  { speaker: "seoyeon", expression: "determined", text: "우리가 함께라면 어떤 난관도 해결할 수 있어! 조금만 더 힘내자!" },
+];
+
+export const WEDDING_DIALOGS = [
+  { speaker: "seoyeon", expression: "heart", text: "와아… 드디어 도착했어! 벚꽃 좀 봐, 너무 예쁘다!" },
+  { speaker: "jaehoon", expression: "smile", text: "서연아, 다섯 개의 관문을 전부 함께 넘어줘서 고마워." },
+  { speaker: "jaehoon", expression: "determined", text: "앞으로 어떤 바위가 길을 막아도, 내가 옆에서 같이 열게." },
+  { speaker: "jaehoon", expression: "heart", text: "나랑… 결혼해 줄래?" },
+];
+
+const SPEAKER_NAME = { seoyeon: "서연 (Seoyeon)", jaehoon: "재훈 (Jaehoon)" };
+
+/* =====================================================================
+ *  2. WORLD CONSTANTS
+ * ===================================================================== */
+const T = 32;
+const COLS = 32;
+const ROWS = 17;
+const W = COLS * T;
+const H = ROWS * T;
+// 'ㄹ'자 모래길: 좌상단 출발 → 아래 → 오른쪽 → 위 → 오른쪽 → 아래 → 우하단 골인 (각 점은 2x2 블록의 좌상단)
+const PATH_WAYPOINTS = [[3, 0], [3, 13], [12, 13], [12, 3], [21, 3], [21, 13], [30, 13]];
+const START = { x: 4 * T, y: 3.6 * T };
+const GOAL_X = 27.4 * T;
+const ARCH = { x: 29.6 * T, y: 15.05 * T };
+const SPEED = 132;
+const FOLLOW_GAP = 34;
+const GATE_BY_ID = Object.fromEntries(QUEST_GATES.map((g) => [g.id, g]));
+
+const PATH_GRID = (() => {
+  const g = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+  for (let i = 0; i < PATH_WAYPOINTS.length - 1; i++) {
+    const [ax, ay] = PATH_WAYPOINTS[i];
+    const [bx, by] = PATH_WAYPOINTS[i + 1];
+    for (let y = Math.min(ay, by); y <= Math.max(ay, by) + 1; y++)
+      for (let x = Math.min(ax, bx); x <= Math.max(ax, bx) + 1; x++)
+        if (x < COLS && y < ROWS) g[y][x] = true;
+  }
+  return g;
+})();
+const isPath = (tx, ty) => tx >= 0 && ty >= 0 && tx < COLS && ty < ROWS && PATH_GRID[ty][tx];
+
+function rng(seed) {
+  let s = seed | 0;
+  return () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* =====================================================================
+ *  3. PIXEL SPRITE SYSTEM — 16 x 24 그리드 문자열 (공백은 가독성용, 무시됨)
+ * ===================================================================== */
+const PAL = {
+  k: "#2A1C1C", s: "#FFE0C8", S: "#F0BC9C", e: "#2E1E1A", w: "#FFFFFF", b: "#F7A3A8", m: "#C9504E", R: "#FF4766",
+  h: "#8A5634", H: "#6A3E22", l: "#B47A4E",
+  c: "#F5E6C8", C: "#D9C49C", o: "#A9845A", j: "#4B6B94", J: "#38557C", x: "#FFFFFF", f: "#6A4028",
+  n: "#1C1C26", N: "#3C3E52", v: "#2B3A55", V: "#1C2740", p: "#3C3C46", P: "#2A2A32", g: "#141418",
+  d: "#FFFFFF", D: "#DCE2EE", t: "#FFD23F", T: "#F59E0B",
+  a: "#D8DCE4", A: "#8C94A2", y: "#FFB800", Y: "#FFE27A", O: "#C98400",
+  z: "#FF8820", Z: "#FFC070", X: "#B8540C", r: "#8E1020", G: "#3FA34D", q: "#E0453A",
+};
+const PAL_TUX = { ...PAL, v: "#1B1B22", V: "#30303C", p: "#1E1E26", P: "#121218" };
+
+const G = (...rows) => rows.map((r) => r.replace(/\s+/g, ""));
+
+const stamp = (grid, row, col, rows) => {
+  const out = grid.slice();
+  rows.forEach((r, i) => {
+    const y = row + i;
+    if (y < 0 || y >= out.length) return;
+    const chars = out[y].split("");
+    for (let k = 0; k < r.length; k++) if (r[k] !== "." && r[k] !== " ") chars[col + k] = r[k];
+    out[y] = chars.join("");
+  });
+  return out;
+};
+
+const HEADS = {
+  seoyeon: {
+    front: G(
+      "...k kkkk kkkk k...", "..kh hhhh hhhh hk..", ".khh hlll hhhh hhk.", ".khh llhh hhhh hhk.",
+      "khhh hhhh hhhh hhhk", "khhh hhhh hhhs shhk", "khhs hhss ssss shhk", "khss ssss ssss sshk",
+      "khss wess ssew sshk", "khss eess ssee sshk", "khsb bssm mssb bshk", "khhs ssss ssss shhk",
+      "khhh kkss sskk hhhk"
+    ),
+    side: G(
+      "...k kkkk kkkk ....", "..kh hhhh hhhh k...", ".khh hlll hhhh hk..", "khhh llhh hhhh hhk.",
+      "khhh hhhh hhhh hhk.", "khhh hhhh hhss shk.", "khhh hhhh ssss sssk", "khhh hhhs ssss sssk",
+      "khhh hhhs ssss wesk", "khhh hhhs ssss eesk", "khhh hhhs sssb bsmk", "khhh hhhh ssss ssk.",
+      "khhh hhhh kssk ...."
+    ),
+    back: G(
+      "...k kkkk kkkk k...", "..kh hhhh hhhh hk..", ".khh hlll hhhh hhk.", ".khh llhh hhhh hhk.",
+      "khhh hhhh hhhh hhhk", "khhh hhhh hhhh hhhk", "khhh Hhhh hhhH hhhk", "khhh hhhh hhhh hhhk",
+      "khhH hhhh hhhh Hhhk", "khhh hhHh hHhh hhhk", "khhh hhhh hhhh hhhk", "khhH hhhh hhhh Hhhk",
+      "khhh hhhh hhhh hhhk"
+    ),
+  },
+  jaehoon: {
+    front: G(
+      "...k kkkk kkkk k...", "..kn nnnn nnnn nk..", ".knn NNnn nnnn nnk.", ".knn nnnn nnnN nnk.",
+      "knnn nnnn nnnn nnnk", "knnn nnnn nnnn nnnk", "knns nnns snnn snnk", "knss ssss ssss ssnk",
+      "ksss wess ssew sssk", "ksss eess ssee sssk", "ksss sssm msss sssk", ".kss ssss ssss ssk.",
+      "..kk kkss sskk kk.."
+    ),
+    side: G(
+      "...k kkkk kkkk ....", "..kn nnnn nnnn k...", ".knn nNNn nnnn nk..", ".knn nnnn nnnn nnk.",
+      ".knn nnnn nnnn nnk.", ".knn nnnn nnnn nnk.", ".knn nnnn nsss snk.", ".knn nnss ssss sssk",
+      ".knn nsSs ssss wesk", ".knn nsss ssss eesk", "..kn ssss ssss smsk", "...k ssss ssss ssk.",
+      ".... kkss skkk ...."
+    ),
+    back: G(
+      "...k kkkk kkkk k...", "..kn nnnn nnnn nk..", ".knn nNNn nnnn nnk.", ".knn nnnn nnnN nnk.",
+      "knnn nnnn nnnn nnnk", "knnn Nnnn nnnN nnnk", "knnn nnnn nnnn nnnk", "knnn nnNn nNnn nnnk",
+      "knnn nnnn nnnn nnnk", "knnn nnnn nnnn nnnk", "kSnn nnnn nnnn nnSk", ".kSn nnnn nnnn nSk.",
+      "..kk kkss sskk kk.."
+    ),
+  },
+};
+
+// 표정 4종: rows 7~10, cols 2~13 (12칸)
+const EXPR = {
+  default: G("............", "..we....ew..", "..ee....ee..", ".bb..mm..bb."),
+  smile: G("............", "..e......e..", ".e.e....e.e.", ".bb.mmmm.bb."),
+  determined: G("..kk....kk..", "..ee....ee..", "..ew....we..", ".bb..kk..bb."),
+  heart: G("............", ".R.R....R.R.", ".RRR....RRR.", "..R..mm..R.."),
+};
+
+const BODIES = {
+  seoyeon: {
+    front: G(
+      "khhk cccw wccc khhk", "khkc ccco cccc ckhk", "kCkc ccco cccc ckCk", "kCkc cccc cccc ckCk",
+      "kskc ccco cccc cksk", ".kkj jjjj jjjj jkk.", ".kjj Jjjj Jjjj jjk.", ".kkk kkkk kkkk kkk."
+    ),
+    back: G(
+      "khhh hhhh hhhh hhhk", "khhh hhhh hhhh hhhk", "kCkh hhhh hhhh hkCk", "kCkc cccc cccc ckCk",
+      "kskc cccc cccc cksk", ".kkj jjjj jjjj jkk.", ".kjj Jjjj Jjjj jjk.", ".kkk kkkk kkkk kkk."
+    ),
+    side: G(
+      "..kh hhhc ccck ....", "..kh hhcc cccc k...", "..kh hcCC cccc k...", "...k hcCC cccc k...",
+      "...k ccss cccc k...", "...k jjjj jjjj k...", "..kj jjjj jjjj jk..", "..kk kkkk kkkk kk.."
+    ),
+  },
+  jaehoon: {
+    front: G(
+      "kvvv vkww wwkv vvvk", "kvvv vkww wwkv vvvk", "kVvv vvkw wkvv vvVk", "kVkv vvkw wkvv vkVk",
+      "kskv vvvw wvvv vksk", ".kkv vvvv vvvv vkk.", "..kp pppp pppp pk..", "..kp ppPk kPpp pk.."
+    ),
+    back: G(
+      "kvvv vvvv vvvv vvvk", "kvvv vvvv vvvv vvvk", "kVvv vvvv vvvv vvVk", "kVkv vvvV Vvvv vkVk",
+      "kskv vvvv vvvv vksk", ".kkv vvvv vvvv vkk.", "..kp pppp pppp pk..", "..kp ppPk kPpp pk.."
+    ),
+    side: G(
+      "...k vvvv vwwk ....", "...k vvvv vvwk ....", "...k vVVv vvvk ....", "...k vVVv vvvk ....",
+      "...k vssv vvvk ....", "...k vvvv vvvk ....", "...k pppp pppk ....", "...k pppp pppk ...."
+    ),
+  },
+};
+
+const LEGS = {
+  seoyeon: {
+    front: [
+      G("...k ssk. .kss k...", "...k xxk. .kxx k...", "..kf ffk. .kff fk.."),
+      G("...k ssk. .kss k...", "..kf ffk. .kxx k...", "...k kk.. .kff fk.."),
+    ],
+    side: [
+      G(".... .kss k... ....", ".... .kxx k... ....", ".... .kff fk.. ...."),
+      G(".... kssk ssk. ....", "...k xxk. kxxk ....", "..kf fk.. kffk ...."),
+    ],
+  },
+  jaehoon: {
+    front: [
+      G("...k pppk kppp k...", "...k pPpk kpPp k...", "..kg ggk. .kgg gk.."),
+      G("...k pppk kppp k...", "..kg ggkk kpPp k...", "...k kkk. .kgg gk.."),
+    ],
+    side: [
+      G(".... kppp k... ....", ".... kpPp k... ....", ".... kggg gk.. ...."),
+      G("...k ppkp pk.. ....", "..kp pk.k ppk. ....", "..kg gk.k ggk. ...."),
+    ],
+  },
+};
+
+const DRESS_FRONT = G(
+  "khhk sddd ddds khhk", "khks dddd dddd skhk", "kwkd dDdd ddDd dkwk", "kwkd dddd dddd dkwk",
+  "kskd dDdd ddDd dksk", ".kdd dddd dddd ddk.", ".kdD dddd dddd Ddk.", "kddd Dddd dddD dddk",
+  "kdDd ddDd dDdd dDdk", "kDdd dDdd ddDd ddDk", "kkkk kkkk kkkk kkkk"
+);
+const DRESS_BACK = stamp(DRESS_FRONT, 0, 0, G("khhh hhhh hhhh hhhk", "khhh hhhh hhhh hhhk", "kwkh hhhh hhhh hkwk"));
+const DRESS_SIDE = stamp(DRESS_FRONT, 0, 0, G("..kh hhhd dddk ....", "..kh hhdd dddd k...", "..kh hddd dddd k..."));
+const TIARA = G(".... ..t. .t.. ....", ".... tYtt ttYt ....");
+const BOWTIE = G(".... ...k k... ....");
+
+const LOCK = G(
+  "...kkkkkk...", "..kaaaaaak..", ".kaAkkkkAak.", ".kak....kak.", ".kak....kak.", "kkkkkkkkkkkk",
+  "kYYyyyyyyyOk", "kYyyyyyyyyOk", "kYyyykkyyyOk", "kyyyykkyyyOk", "kyyyykkyyyOk", "kOyyyyyyyyOk",
+  "kOOOOOOOOOOk", "kkkkkkkkkkkk"
+);
+const LOCK_OPEN = G(
+  "...kkkkkk...", "..kaaaaaak..", ".kaAkkkkAak.", ".kak....kak.", ".kak....kak.", ".kak....kkk.",
+  ".kak........", "kkkkkkkkkkkk", "kYYyyyyyyyOk", "kYyyykkyyyOk", "kyyyykkyyyOk", "kyyyykkyyyOk",
+  "kOyyyyyyyyOk", "kkkkkkkkkkkk"
+);
+const TRIANGLE = G("kkkkkkkkkk", "kZZzzzzzXk", ".kZzzzzXk.", "..kzzzXk..", "...kzXk...", "....kk....");
+const RING_BOX = G("..kkkk..", ".kyYyyk.", ".kykkyk.", "kkkyykkk", "kRRRRRRk", "kRRRRRrk", "krrrrrrk", "kkkkkkkk");
+const STAR = G("..Y..", "..Y..", "YYwYY", "..Y..", "..Y..");
+const CHECK = G("......kk", ".....kGk", "kk..kGk.", "kGkkGk..", ".kGGk...", "..kk....");
+const CROSS = G("kk....kk", "kqk..kqk", ".kqkkqk.", "..kqqk..", ".kqkkqk.", "kqk..kqk", "kk....kk");
+
+const spriteCache = new Map();
+function getSprite(who, view, outfit, frame = 0, expr = "default", bustOnly = false) {
+  const key = [who, view, outfit, frame, expr, bustOnly].join("|");
+  if (spriteCache.has(key)) return spriteCache.get(key);
+  let head = HEADS[who][view].slice();
+  if (view === "front") {
+    head = stamp(head, 7, 2, Array(4).fill("ssssssssssss"));
+    const ex = EXPR[expr] || EXPR.default;
+    head = stamp(head, 7, 2, who === "jaehoon" ? ex.map((r) => r.replace(/b/g, ".")) : ex);
+  }
+  let body;
+  if (who === "seoyeon" && outfit === "wedding") {
+    body = view === "back" ? DRESS_BACK : view === "side" ? DRESS_SIDE : DRESS_FRONT;
+    head = stamp(head, 0, 0, TIARA);
+  } else {
+    const legView = view === "side" ? "side" : "front";
+    body = [...BODIES[who][view], ...LEGS[who][legView][frame % 2]];
+  }
+  let grid = [...head, ...(bustOnly ? body.slice(0, 5) : body)];
+  if (who === "jaehoon" && outfit === "wedding" && view === "front") grid = stamp(grid, 13, 0, BOWTIE);
+  const palette = who === "jaehoon" && outfit === "wedding" ? PAL_TUX : PAL;
+  const res = { grid, palette };
+  spriteCache.set(key, res);
+  return res;
+}
+
+const PixelArt = memo(function PixelArt({ grid, palette = PAL, px = 2, style, className }) {
+  const rects = useMemo(() => {
+    const out = [];
+    grid.forEach((row, y) => {
+      let x = 0;
+      while (x < row.length) {
+        const ch = row[x];
+        if (ch === ".") { x++; continue; }
+        let x2 = x + 1;
+        while (x2 < row.length && row[x2] === ch) x2++;
+        out.push(<rect key={`${y}-${x}`} x={x} y={y} width={x2 - x} height={1.04} fill={palette[ch] || "#f0f"} />);
+        x = x2;
+      }
+    });
+    return out;
+  }, [grid, palette]);
+  const w = Math.max(...grid.map((r) => r.length));
+  const h = grid.length;
+  return (
+    <svg width={w * px} height={h * px} viewBox={`0 0 ${w} ${h}`} shapeRendering="crispEdges" style={{ display: "block", overflow: "visible", ...style }} className={className}>
+      {rects}
+    </svg>
+  );
+});
+
+/* =====================================================================
+ *  4. MAP & PROP ARTWORK (procedural pixel SVG)
+ * ===================================================================== */
+function useRects(build, deps) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => {
+    const out = [];
+    let k = 0;
+    const r = (x, y, w, h, fill) => out.push(<rect key={k++} x={x} y={y} width={w} height={h} fill={fill} />);
+    const meta = build(r, out, () => k++) || {};
+    return { out, ...meta };
+  }, deps);
+}
+
+const GRASS = "#90C848";
+const GRASS_DARK = "#68A830";
+const DIRT = "#E8C898";
+const DIRT_EDGE = "#D0A878";
+const DIRT_LINE = "#B48A5C";
+
+function hFence(r, x1, x2, y) {
+  r(x1, y - 16, x2 - x1, 4, "#8E949C");
+  r(x1, y - 15, x2 - x1, 2, "#F4F4F4");
+  r(x1, y - 8, x2 - x1, 4, "#8E949C");
+  r(x1, y - 7, x2 - x1, 2, "#E4E6EA");
+  for (let x = x1 + 10; x < x2 - 12; x += 10) {
+    r(x, y - 22, 6, 22, "#8E949C");
+    r(x + 2, y - 24, 2, 2, "#8E949C");
+    r(x + 1, y - 21, 4, 20, "#F4F4F4");
+    r(x + 2, y - 22, 2, 1, "#F4F4F4");
+    r(x + 4, y - 20, 1, 18, "#D2D6DC");
+  }
+  [x1, x2 - 10].forEach((px) => {
+    r(px, y - 28, 10, 30, "#4A2C14");
+    r(px + 1, y - 27, 8, 28, "#A66B38");
+    r(px + 1, y - 27, 3, 28, "#C48650");
+    r(px + 1, y - 27, 8, 3, "#7A4A22");
+  });
+}
+function vFence(r, x, y1, y2) {
+  r(x - 3, y1, 6, y2 - y1, "#8E949C");
+  r(x - 2, y1, 4, y2 - y1, "#F4F4F4");
+  for (let y = y1 + 6; y < y2; y += 8) r(x - 2, y, 4, 1, "#C8CCD2");
+  [y1, y2 - 14].forEach((py) => {
+    r(x - 6, py - 4, 12, 18, "#4A2C14");
+    r(x - 5, py - 3, 10, 16, "#A66B38");
+    r(x - 5, py - 3, 4, 16, "#C48650");
+    r(x - 5, py - 3, 10, 3, "#7A4A22");
+  });
+}
+
+const Ground = memo(function Ground() {
+  const { out } = useRects((r) => {
+    const rand = rng(7);
+    r(0, 0, W, H, GRASS);
+    for (let ty = 0; ty < ROWS; ty++)
+      for (let tx = 0; tx < COLS; tx++) if (!isPath(tx, ty) && (tx + ty) % 2 === 0) r(tx * T, ty * T, T, T, "#8DC545");
+    // dirt path tiles
+    const grassAt = (tx, ty) => tx >= 0 && ty >= 0 && tx < COLS && ty < ROWS && !PATH_GRID[ty][tx];
+    for (let ty = 0; ty < ROWS; ty++)
+      for (let tx = 0; tx < COLS; tx++) {
+        if (!isPath(tx, ty)) continue;
+        const x = tx * T, y = ty * T;
+        r(x, y, T, T, DIRT);
+        for (let i = 0; i < 3; i++) r(x + Math.floor(rand() * 28), y + Math.floor(rand() * 28), 2, 2, "#DDB884");
+        if (rand() < 0.12) { const px = x + 6 + Math.floor(rand() * 18), py = y + 6 + Math.floor(rand() * 18); r(px, py, 4, 3, "#C9B79A"); r(px, py, 2, 1, "#F2EAD8"); }
+        const up = grassAt(tx, ty - 1), dn = grassAt(tx, ty + 1), lf = grassAt(tx - 1, ty), rt = grassAt(tx + 1, ty);
+        if (up) { r(x, y, T, 5, DIRT_EDGE); r(x, y, T, 2, DIRT_LINE); for (let i = 2; i < T; i += 10) r(x + i, y, 5, 3, GRASS_DARK); }
+        if (dn) { r(x, y + T - 5, T, 5, DIRT_EDGE); r(x, y + T - 2, T, 2, DIRT_LINE); for (let i = 6; i < T; i += 10) r(x + i, y + T - 3, 5, 3, GRASS_DARK); }
+        if (lf) { r(x, y, 5, T, DIRT_EDGE); r(x, y, 2, T, DIRT_LINE); for (let i = 4; i < T; i += 10) r(x, y + i, 3, 5, GRASS_DARK); }
+        if (rt) { r(x + T - 5, y, 5, T, DIRT_EDGE); r(x + T - 2, y, 2, T, DIRT_LINE); for (let i = 8; i < T; i += 10) r(x + T - 3, y + i, 3, 5, GRASS_DARK); }
+        // rounded outer corners
+        const corner = (cx, cy, sx, sy) => { r(cx, cy, 6 * sx, 3 * sy, GRASS); r(cx, cy, 3 * sx, 6 * sy, GRASS); };
+        if (up && lf) corner(x, y, 1, 1);
+        if (up && rt) { r(x + T - 6, y, 6, 3, GRASS); r(x + T - 3, y, 3, 6, GRASS); }
+        if (dn && lf) { r(x, y + T - 3, 6, 3, GRASS); r(x, y + T - 6, 3, 6, GRASS); }
+        if (dn && rt) { r(x + T - 6, y + T - 3, 6, 3, GRASS); r(x + T - 3, y + T - 6, 3, 6, GRASS); }
+        // inner corners
+        if (!up && !lf && grassAt(tx - 1, ty - 1)) { r(x, y, 5, 5, DIRT_EDGE); r(x, y, 3, 3, DIRT_LINE); }
+        if (!up && !rt && grassAt(tx + 1, ty - 1)) { r(x + T - 5, y, 5, 5, DIRT_EDGE); r(x + T - 3, y, 3, 3, DIRT_LINE); }
+        if (!dn && !lf && grassAt(tx - 1, ty + 1)) { r(x, y + T - 5, 5, 5, DIRT_EDGE); r(x, y + T - 3, 3, 3, DIRT_LINE); }
+        if (!dn && !rt && grassAt(tx + 1, ty + 1)) { r(x + T - 5, y + T - 5, 5, 5, DIRT_EDGE); r(x + T - 3, y + T - 3, 3, 3, DIRT_LINE); }
+      }
+    // grass details: tufts, wild flowers, pebbles
+    for (let i = 0; i < 340; i++) {
+      const x = Math.floor(rand() * (W - 10)), y = Math.floor(rand() * (H - 10));
+      const tx = Math.floor((x + 4) / T), ty = Math.floor((y + 4) / T);
+      if (isPath(tx, ty) || isPath(Math.floor((x + 9) / T), Math.floor((y + 8) / T)) || isPath(Math.floor(x / T), Math.floor(y / T))) continue;
+      const roll = rand();
+      if (roll < 0.72) {
+        r(x, y + 2, 2, 4, GRASS_DARK); r(x + 3, y, 2, 6, GRASS_DARK); r(x + 6, y + 2, 2, 4, GRASS_DARK); r(x + 3, y, 2, 1, "#A8D860");
+      } else if (roll < 0.9) {
+        const c = rand() < 0.5 ? "#FFFFFF" : rand() < 0.5 ? "#FFE15A" : "#F7A6C0";
+        r(x + 2, y, 2, 2, c); r(x, y + 2, 2, 2, c); r(x + 4, y + 2, 2, 2, c); r(x + 2, y + 4, 2, 2, c); r(x + 2, y + 2, 2, 2, "#F5B82E"); r(x + 2, y + 6, 2, 2, GRASS_DARK);
+      } else {
+        r(x, y, 7, 5, "#8E949C"); r(x + 1, y, 5, 4, "#CDD1D6"); r(x + 1, y, 2, 1, "#F4F6F8");
+      }
+    }
+    // fences (외곽 울타리)
+    hFence(r, 4, 2.5 * T, 30);
+    hFence(r, 5.5 * T, W - 4, 30);
+    hFence(r, 4, W - 4, H - 2);
+    vFence(r, 8, 36, H - 24);
+    vFence(r, W - 8, 36, 12.4 * T);
+    vFence(r, W - 8, 15.6 * T, H - 24);
+  }, []);
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} shapeRendering="crispEdges" style={{ position: "absolute", left: 0, top: 0, zIndex: 0 }}>
+      {out}
+    </svg>
+  );
+});
+
+const Shadow = ({ cx, cy, rx, ry = 5 }) => <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="rgba(20,40,10,0.22)" />;
+
+const Tree = memo(function Tree({ r: R, seed }) {
+  const { out, w, h } = useRects((r, list, key) => {
+    const rand = rng(seed);
+    const c = 4;
+    const n = Math.ceil((2 * R) / c) + 1;
+    const w = n * c;
+    const trunkH = Math.round(R * 0.5);
+    const h = w + trunkH;
+    list.push(<Shadow key={key()} cx={w / 2} cy={h - 5} rx={R * 0.85} ry={6} />);
+    const tw = Math.max(10, Math.round(R * 0.2) * 2), tx = w / 2 - tw / 2, ty = w - 14;
+    r(tx - 2, ty, tw + 4, trunkH + 10, "#3E2410");
+    r(tx, ty, tw, trunkH + 8, "#8B5A2B"); r(tx, ty, 3, trunkH + 8, "#A8723C"); r(tx + tw - 3, ty, 3, trunkH + 8, "#6A4220");
+    r(tx - 7, h - 10, 7, 5, "#3E2410"); r(tx - 5, h - 9, 5, 3, "#8B5A2B");
+    r(tx + tw, h - 10, 7, 5, "#3E2410"); r(tx + tw, h - 9, 5, 3, "#8B5A2B");
+    const ph = seed * 1.7;
+    for (let j = 0; j < n; j++)
+      for (let i = 0; i < n; i++) {
+        const cx = (i + 0.5) * c - w / 2, cy = (j + 0.5) * c - w / 2;
+        const d = Math.hypot(cx, cy);
+        const wob = Math.sin(Math.atan2(cy, cx) * 9 + ph) * 2.6;
+        if (d > R + wob) continue;
+        const edge = d > R + wob - c;
+        const shade = (-cx * 0.55 - cy * 0.85) / R;
+        let col = "#3E9A34";
+        if (shade > 0.45) col = "#7ACB52"; else if (shade > 0.05) col = "#55B23E"; else if (shade < -0.5) col = "#2B7429";
+        const rr = rand();
+        if (!edge && rr < 0.1) col = shade > 0 ? "#92DA66" : "#347F2E";
+        if (edge) col = "#1E521F";
+        r(i * c, j * c, c, c, col);
+        if (!edge && rr > 0.93 && shade > -0.2) r(i * c, j * c + c, c, 2, "#2E7A2A");
+      }
+    return { w, h };
+  }, [R, seed]);
+  return <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} shapeRendering="crispEdges" style={{ display: "block", overflow: "visible" }}>{out}</svg>;
+});
+
+const Bush = memo(function Bush({ r: R, seed, flowers = true }) {
+  const { out, w, h } = useRects((r, list, key) => {
+    const rand = rng(seed);
+    const c = 4, n = Math.ceil((2 * R) / c) + 1, w = n * c, h = Math.round(w * 0.78) + 4;
+    list.push(<Shadow key={key()} cx={w / 2} cy={h - 4} rx={R} ry={5} />);
+    const cyc = h - 4 - R * 0.72;
+    for (let j = 0; j < n; j++)
+      for (let i = 0; i < n; i++) {
+        const x = (i + 0.5) * c - w / 2, y = (j + 0.5) * c - cyc;
+        const d = Math.hypot(x, y / 0.72);
+        const wob = Math.sin(Math.atan2(y, x) * 7 + seed) * 2.4;
+        if (d > R + wob) continue;
+        const edge = d > R + wob - c;
+        const shade = (-x * 0.5 - y * 0.9) / R;
+        let col = shade > 0.35 ? "#6CC548" : shade > -0.3 ? "#46A836" : "#2E7E2A";
+        if (edge) col = "#1E521F";
+        r(i * c, j * c, c, c, col);
+        if (flowers && !edge && rand() < 0.13) { r(i * c, j * c, 4, 4, "#F59AB8"); r(i * c + 1, j * c + 1, 2, 2, "#FFF0F5"); }
+      }
+    return { w, h };
+  }, [R, seed, flowers]);
+  return <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} shapeRendering="crispEdges" style={{ display: "block", overflow: "visible" }}>{out}</svg>;
+});
+
+const Log = memo(function Log() {
+  const { out } = useRects((r, list, key) => {
+    list.push(<Shadow key={key()} cx={34} cy={28} rx={30} ry={4} />);
+    r(4, 8, 54, 20, "#3E2410"); r(6, 10, 50, 16, "#9A6A3A"); r(6, 10, 50, 4, "#B8854C"); r(6, 22, 50, 4, "#74482A");
+    for (let i = 0; i < 4; i++) r(12 + i * 11, 15, 7, 2, "#74482A");
+    r(54, 6, 12, 24, "#3E2410"); r(56, 8, 8, 20, "#D9A866"); r(58, 12, 4, 12, "#B07A40"); r(59, 16, 2, 4, "#8B5A2B");
+    r(10, 5, 16, 6, "#1E521F"); r(11, 6, 14, 4, "#6DB33F"); r(12, 6, 6, 2, "#9AD86A");
+    r(32, 6, 12, 5, "#1E521F"); r(33, 7, 10, 3, "#6DB33F");
+    r(22, 0, 6, 10, "#3E2410"); r(23, 1, 4, 9, "#9A6A3A");
+    r(2, 24, 4, 5, GRASS_DARK); r(44, 26, 4, 4, GRASS_DARK);
+  }, []);
+  return <svg width={68} height={32} viewBox="0 0 68 32" shapeRendering="crispEdges" style={{ display: "block" }}>{out}</svg>;
+});
+
+const Mushrooms = memo(function Mushrooms() {
+  const { out } = useRects((r, list, key) => {
+    list.push(<Shadow key={key()} cx={16} cy={22} rx={14} ry={3} />);
+    const shroom = (x, y, s, cap) => {
+      r(x + s, y + s * 2, s * 2, s * 3, "#4A2C14"); r(x + s + 1, y + s * 2, s * 2 - 2, s * 3 - 1, "#F3E2C4");
+      r(x - 1, y - 1, s * 4 + 2, s * 2 + 2, "#4A2C14"); r(x, y, s * 4, s * 2, cap); r(x + 1, y, s, 2, "#FFFFFF"); r(x + s * 3 - 1, y + 2, 2, 2, "#FFFFFF");
+    };
+    shroom(2, 8, 3, "#C8743A");
+    shroom(16, 4, 4, "#B8582E");
+    shroom(24, 14, 2, "#D08A50");
+  }, []);
+  return <svg width={36} height={26} viewBox="0 0 36 26" shapeRendering="crispEdges" style={{ display: "block", overflow: "visible" }}>{out}</svg>;
+});
+
+const FlowerPatch = memo(function FlowerPatch({ seed = 1 }) {
+  const { out } = useRects((r) => {
+    const rand = rng(seed);
+    for (let i = 0; i < 9; i++) {
+      const x = 2 + Math.floor(rand() * 40), y = 6 + Math.floor(rand() * 14);
+      r(x + 2, y + 5, 2, 6, "#3E8E2E"); r(x + 4, y + 8, 3, 2, "#55B23E");
+      const c = rand() < 0.65 ? "#FFE04A" : "#FFFFFF";
+      r(x + 2, y, 2, 2, c); r(x, y + 2, 2, 2, c); r(x + 4, y + 2, 2, 2, c); r(x + 2, y + 4, 2, 2, c); r(x + 2, y + 2, 2, 2, "#E88A1A");
+    }
+    for (let i = 0; i < 4; i++) { const x = Math.floor(rand() * 40), y = 14 + Math.floor(rand() * 8); r(x, y, 2, 5, GRASS_DARK); r(x + 3, y - 2, 2, 7, GRASS_DARK); }
+  }, [seed]);
+  return <svg width={48} height={32} viewBox="0 0 48 32" shapeRendering="crispEdges" style={{ display: "block", overflow: "visible" }}>{out}</svg>;
+});
+
+const SignPost = memo(function SignPost({ num, arrow }) {
+  const { out } = useRects((r, list, key) => {
+    list.push(<ellipse key={key()} cx={20} cy={39} rx={13} ry={4} fill="#B88A5A" />);
+    list.push(<ellipse key={key()} cx={20} cy={38} rx={9} ry={2.5} fill="#8E6236" />);
+    r(16, 16, 8, 24, "#3A200C"); r(17, 16, 6, 23, "#9E6334"); r(17, 16, 2, 23, "#B87A44");
+    const flip = arrow === "left";
+    const X = (x, w) => (flip ? 40 - x - w : x);
+    const rr = (x, y, w, h, f) => r(X(x, w), y, w, h, f);
+    rr(1, 2, 30, 18, "#3A200C");
+    rr(31, 4, 3, 14, "#3A200C"); rr(34, 6, 2, 10, "#3A200C"); rr(36, 8, 2, 6, "#3A200C"); rr(38, 10, 1, 2, "#3A200C");
+    rr(2, 3, 29, 16, "#B07440"); rr(31, 5, 2, 12, "#B07440"); rr(33, 7, 2, 8, "#B07440"); rr(35, 9, 1, 4, "#B07440");
+    rr(2, 3, 29, 3, "#CC8C52"); rr(2, 15, 29, 4, "#8E5A2C"); rr(5, 9, 6, 1, "#8E5A2C"); rr(22, 12, 7, 1, "#8E5A2C");
+    list.push(
+      <text key={key()} x={flip ? 23 : 17} y={16} textAnchor="middle" fontFamily="'Press Start 2P', monospace" fontSize="10" fill="#3A200C">{num}</text>
+    );
+    r(10, 37, 4, 3, GRASS_DARK); r(27, 36, 3, 4, GRASS_DARK);
+  }, [num, arrow]);
+  return <svg width={40} height={42} viewBox="0 0 40 42" shapeRendering="crispEdges" style={{ display: "block", overflow: "visible" }}>{out}</svg>;
+});
+
+const StartBanner = memo(function StartBanner() {
+  const { out } = useRects((r, list, key) => {
+    [0, 92].forEach((x) => {
+      r(x + 1, 74, 10, 6, "#5C626C"); r(x + 2, 75, 8, 4, "#8A9099");
+      r(x + 3, 4, 6, 72, "#4A5058"); r(x + 4, 4, 4, 71, "#C4CAD4"); r(x + 4, 4, 2, 71, "#EEF1F5");
+      r(x + 2, 0, 8, 6, "#4A5058"); r(x + 3, 1, 6, 4, "#DDE2E8");
+    });
+    r(9, 8, 86, 32, "#0E2E66"); r(10, 9, 84, 30, "#2868C8"); r(10, 9, 84, 4, "#4C8CEB"); r(10, 34, 84, 5, "#1C50A0");
+    r(9, 6, 4, 4, "#0E2E66"); r(91, 6, 4, 4, "#0E2E66");
+    list.push(<text key={key()} x={53} y={30} textAnchor="middle" fontFamily="'Press Start 2P', monospace" fontSize="11" fill="#0E2E66">START »</text>);
+    list.push(<text key={key()} x={52} y={29} textAnchor="middle" fontFamily="'Press Start 2P', monospace" fontSize="11" fill="#FFFFFF">START »</text>);
+  }, []);
+  return <svg width={104} height={82} viewBox="0 0 104 82" shapeRendering="crispEdges" style={{ display: "block", overflow: "visible" }}>{out}</svg>;
+});
+
+const WeddingArch = memo(function WeddingArch() {
+  const { out } = useRects((r, list, key) => {
+    const rand = rng(28);
+    const c = 4, w = 124, h = 176, cx = 62, cy = 66, ro = 58, ri = 42;
+    list.push(<Shadow key={key()} cx={cx} cy={h - 5} rx={58} ry={5} />);
+    const cells = [];
+    for (let j = 0; j < h / c; j++)
+      for (let i = 0; i < w / c; i++) {
+        const x = i * c + 2, y = j * c + 2;
+        let inside = false, edge = false, right = false;
+        if (y <= cy) {
+          const d = Math.hypot(x - cx, y - cy);
+          inside = d <= ro && d >= ri;
+          edge = inside && (d > ro - c || d < ri + c);
+          right = x > cx;
+        } else if (y < h - 10) {
+          inside = (x >= cx - ro && x <= cx - ri) || (x >= cx + ri && x <= cx + ro);
+          edge = inside && (x < cx - ro + c || x > cx + ro - c || Math.abs(x - (cx - ri)) < c || Math.abs(x - (cx + ri)) < c);
+          right = x > cx;
+        }
+        if (!inside) continue;
+        r(i * c, j * c, c, c, edge ? "#9AA2B0" : right ? "#E2E6EE" : "#FAFBFD");
+        cells.push([i * c, j * c]);
+      }
+    // blossoms + leaves wrapped around the arch
+    cells.forEach(([x, y]) => {
+      const p = rand();
+      if (p < 0.2) { r(x - 2, y, 6, 6, "#4E9A3E"); r(x - 1, y + 1, 4, 3, "#6CC04A"); }
+      else if (p < 0.5) {
+        const pc = rand() < 0.5 ? "#F7B7CB" : "#EE8FB0";
+        r(x - 2, y - 2, 8, 8, "#C25A80"); r(x - 1, y - 1, 6, 6, pc); r(x + 1, y + 1, 2, 2, "#FFE8F0");
+      }
+    });
+    // base planters
+    [cx - ro - 4, cx + ri - 4].forEach((x) => { r(x, h - 14, ro - ri + 8, 10, "#3E2410"); r(x + 1, h - 13, ro - ri + 6, 8, "#A66B38"); r(x + 1, h - 13, ro - ri + 6, 2, "#C48650"); });
+    // hanging sign 2028 WEDDING
+    r(cx - 20, cy - 20, 2, 26, "#5A3A1E"); r(cx + 18, cy - 20, 2, 26, "#5A3A1E");
+    r(cx - 28, cy + 4, 56, 30, "#3A200C"); r(cx - 27, cy + 5, 54, 28, "#B07440"); r(cx - 27, cy + 5, 54, 3, "#CC8C52"); r(cx - 27, cy + 29, 54, 4, "#8E5A2C");
+    list.push(<text key={key()} x={cx} y={cy + 18} textAnchor="middle" fontFamily="'Press Start 2P', monospace" fontSize="8" fill="#3A200C">2028</text>);
+    list.push(<text key={key()} x={cx} y={cy + 28} textAnchor="middle" fontFamily="'Press Start 2P', monospace" fontSize="6.5" fill="#3A200C">WEDDING</text>);
+    // fallen petals
+    for (let i = 0; i < 9; i++) r(8 + Math.floor(rand() * 108), h - 8 + Math.floor(rand() * 6), 3, 2, "#F7B7CB");
+  }, []);
+  return <svg width={124} height={180} viewBox="0 0 124 180" shapeRendering="crispEdges" style={{ display: "block", overflow: "visible" }}>{out}</svg>;
+});
+
+const Rock = memo(function Rock() {
+  const { out } = useRects((r, list, key) => {
+    const rand = rng(91);
+    const c = 4, w = 68, h = 56, cx = 34, cy = 30, rx = 31, ry = 24;
+    list.push(<Shadow key={key()} cx={cx} cy={h - 4} rx={30} ry={5} />);
+    for (let j = 0; j < h / c; j++)
+      for (let i = 0; i < w / c; i++) {
+        const x = i * c + 2 - cx, y = j * c + 2 - cy;
+        const d = Math.hypot(x / rx, y / ry);
+        const wob = 0.06 * Math.sin(Math.atan2(y, x) * 5 + 1.3);
+        if (d > 1 + wob || j * c + 2 > h - 6) continue;
+        const edge = d > 1 + wob - 0.13 || j * c + 2 > h - 10;
+        const facet = Math.floor((Math.atan2(y, x) + Math.PI) / (Math.PI / 3));
+        const shade = (-x / rx) * 0.5 + (-y / ry) * 0.9 + (facet % 2 ? 0.12 : -0.05);
+        let col = shade > 0.55 ? "#B4B8C2" : shade > 0.15 ? "#989CA8" : shade > -0.35 ? "#787C88" : "#4E525A";
+        if (edge) col = "#2E3036";
+        r(i * c, j * c, c, c, col);
+      }
+    r(14, 22, 2, 8, "#4E525A"); r(16, 28, 2, 6, "#4E525A"); r(50, 18, 2, 8, "#4E525A"); r(48, 24, 2, 4, "#4E525A");
+    for (let i = 0; i < 4; i++) { const x = 4 + Math.floor(rand() * 60); r(x, h - 8, 2, 5, GRASS_DARK); r(x + 3, h - 10, 2, 7, GRASS_DARK); }
+  }, []);
+  return <svg width={68} height={56} viewBox="0 0 68 56" shapeRendering="crispEdges" style={{ display: "block", overflow: "visible" }}>{out}</svg>;
+});
+
+// 환경 프롭 배치 (x = 중심 타일, y = 바닥 타일)
+const PROPS = [
+  { type: "tree", r: 40, x: 8.4, y: 6.1, seed: 3 },
+  { type: "tree", r: 24, x: 10.7, y: 2.9, seed: 5 },
+  { type: "tree", r: 30, x: 1.5, y: 6.3, seed: 8 },
+  { type: "tree", r: 22, x: 1.4, y: 12.6, seed: 11 },
+  { type: "tree", r: 40, x: 17.4, y: 13.9, seed: 13 },
+  { type: "tree", r: 24, x: 19.6, y: 2.75, seed: 17 },
+  { type: "tree", r: 42, x: 27.2, y: 6.6, seed: 19 },
+  { type: "tree", r: 22, x: 30.5, y: 9.3, seed: 23 },
+  { type: "bush", r: 18, x: 10.2, y: 9.6, seed: 2 },
+  { type: "bush", r: 16, x: 15.6, y: 6.6, seed: 4 },
+  { type: "bush", r: 18, x: 19.3, y: 11.4, seed: 6 },
+  { type: "bush", r: 18, x: 24.9, y: 11.6, seed: 9 },
+  { type: "bush", r: 14, x: 13.8, y: 2.7, seed: 12 },
+  { type: "bush", r: 16, x: 25.2, y: 16.4, seed: 14, flowers: false },
+  { type: "log", x: 17.4, y: 8.3 },
+  { type: "log", x: 25.0, y: 2.6 },
+  { type: "mush", x: 6.4, y: 6.3 },
+  { type: "mush", x: 24.2, y: 7.3 },
+  { type: "mush", x: 15.2, y: 16.1 },
+  { type: "flowers", x: 9.6, y: 12.0, seed: 1 },
+  { type: "flowers", x: 29.2, y: 3.4, seed: 2 },
+  { type: "flowers", x: 15.3, y: 12.6, seed: 3 },
+  { type: "flowers", x: 10.2, y: 16.3, seed: 4 },
+  { type: "flowers", x: 1.5, y: 16.2, seed: 5 },
+];
+
+function PropNode({ p }) {
+  let el;
+  if (p.type === "tree") el = <Tree r={p.r} seed={p.seed} />;
+  else if (p.type === "bush") el = <Bush r={p.r} seed={p.seed} flowers={p.flowers !== false} />;
+  else if (p.type === "log") el = <Log />;
+  else if (p.type === "mush") el = <Mushrooms />;
+  else el = <FlowerPatch seed={p.seed} />;
+  return (
+    <div style={{ position: "absolute", left: p.x * T, top: p.y * T, zIndex: Math.round(p.y * T), transform: "translate(-50%, -100%)", pointerEvents: "none" }}>
+      {el}
+    </div>
+  );
+}
+
+/* =====================================================================
+ *  5. CHARACTERS
+ * ===================================================================== */
+const VEIL = "rgba(255,255,255,0.62)";
+const Veil = ({ view, layer }) => {
+  // sprite px = 2, grid 16x24 → 32x48
+  if (view === "back" && layer === "front")
+    return (
+      <svg width={40} height={44} viewBox="0 0 20 22" shapeRendering="crispEdges" style={{ position: "absolute", left: -4, top: 2, pointerEvents: "none" }}>
+        <rect x={3} y={0} width={14} height={20} fill={VEIL} />
+        <rect x={2} y={6} width={16} height={15} fill={VEIL} />
+        {[5, 8, 11, 14].map((x) => <rect key={x} x={x} y={1} width={1} height={19} fill="rgba(220,228,240,0.7)" />)}
+        <rect x={2} y={20} width={16} height={1} fill="rgba(200,210,226,0.8)" />
+      </svg>
+    );
+  if (layer !== "back") return null;
+  if (view === "side")
+    return (
+      <svg width={40} height={44} viewBox="0 0 20 22" shapeRendering="crispEdges" style={{ position: "absolute", left: -6, top: 2, pointerEvents: "none" }}>
+        <rect x={2} y={1} width={6} height={8} fill={VEIL} /><rect x={1} y={8} width={7} height={8} fill={VEIL} /><rect x={0} y={15} width={8} height={6} fill={VEIL} />
+      </svg>
+    );
+  return (
+    <svg width={44} height={44} viewBox="0 0 22 22" shapeRendering="crispEdges" style={{ position: "absolute", left: -6, top: 2, pointerEvents: "none" }}>
+      <rect x={2} y={1} width={3} height={7} fill={VEIL} /><rect x={1} y={7} width={4} height={8} fill={VEIL} /><rect x={0} y={14} width={5} height={7} fill={VEIL} />
+      <rect x={17} y={1} width={3} height={7} fill={VEIL} /><rect x={17} y={7} width={4} height={8} fill={VEIL} /><rect x={17} y={14} width={5} height={7} fill={VEIL} />
+    </svg>
+  );
+};
+
+const Character = memo(function Character({ who, x, y, dir, frame, bob, outfit }) {
+  const view = dir === "up" ? "back" : dir === "down" ? "front" : "side";
+  const flip = dir === "left";
+  const { grid, palette } = getSprite(who, view, outfit, frame);
+  const bride = who === "seoyeon" && outfit === "wedding";
+  const ring = who === "jaehoon" && outfit === "wedding" && view === "front";
+  return (
+    <div style={{ position: "absolute", left: x - 16, top: y - 48, width: 32, height: 48, zIndex: Math.round(y) + 1, pointerEvents: "none" }}>
+      <div style={{ position: "absolute", left: 4, top: 43, width: 24, height: 7, borderRadius: "50%", background: "rgba(20,40,10,0.25)" }} />
+      <div style={{ position: "absolute", inset: 0, transform: `translateY(${bob}px) scaleX(${flip ? -1 : 1})` }}>
+        {bride && <Veil view={view} layer="back" />}
+        <PixelArt grid={grid} palette={palette} px={2} />
+        {bride && <Veil view={view} layer="front" />}
+        {ring && (
+          <motion.div style={{ position: "absolute", left: 26, top: 22 }} animate={{ y: [0, -2, 0] }} transition={{ duration: 1.2, repeat: Infinity }}>
+            <PixelArt grid={RING_BOX} px={1.6} />
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+/* =====================================================================
+ *  6. GATE (rock + lock + bouncing marker)
+ * ===================================================================== */
+function Burst({ count = 12, radius = 52, grid = STAR, px = 2, duration = 0.9 }) {
+  return Array.from({ length: count }).map((_, i) => {
+    const a = (i / count) * Math.PI * 2 + 0.3;
+    const rr = radius * (0.7 + ((i * 37) % 10) / 30);
+    return (
+      <motion.div key={i} style={{ position: "absolute", left: "50%", top: "50%", marginLeft: -5, marginTop: -5 }}
+        initial={{ x: 0, y: 0, opacity: 1, scale: 0.6 }}
+        animate={{ x: Math.cos(a) * rr, y: Math.sin(a) * rr, opacity: 0, scale: 1.2, rotate: 90 }}
+        transition={{ duration, ease: "easeOut" }}>
+        <PixelArt grid={grid} px={px} />
+      </motion.div>
+    );
+  });
+}
+
+const PUFF = G("..kkkk..", ".kwwwwk.", "kwwwwDwk", "kwwwwwDk", "kwDwwwDk", ".kDDDDk.", "..kkkk..");
+
+function Gate({ gate, state }) {
+  const left = gate.x * T;
+  const base = (gate.y + 2) * T;
+  if (state === "open") return null;
+  const opening = state === "opening";
+  const poof = state === "poof";
+  return (
+    <div style={{ position: "absolute", left, top: base - 58, width: 64, height: 58, zIndex: base - 8, pointerEvents: "none" }}>
+      <motion.div style={{ position: "absolute", left: -2, top: 0, originY: 1 }}
+        animate={poof ? { scale: [1, 1.18, 0], opacity: [1, 1, 0] } : opening ? { x: [0, -2, 2, -2, 2, 0] } : { scale: 1 }}
+        transition={poof ? { duration: 0.45 } : opening ? { duration: 0.5, repeat: 1 } : {}}>
+        <Rock />
+        <motion.div style={{ position: "absolute", left: 21, top: opening ? 8 : 12 }}
+          animate={opening ? { y: [0, -10, -6], scale: [1, 1.25, 1.15] } : {}} transition={{ duration: 0.5 }}>
+          <PixelArt grid={opening || poof ? LOCK_OPEN : LOCK} px={2.2} />
+        </motion.div>
+      </motion.div>
+      {!opening && !poof && (
+        <motion.div style={{ position: "absolute", left: 22, top: -22 }} animate={{ y: [0, -7, 0] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}>
+          <PixelArt grid={TRIANGLE} px={2} />
+        </motion.div>
+      )}
+      {opening && <div style={{ position: "absolute", left: 32, top: 26 }}><Burst count={12} radius={56} /></div>}
+      {poof && <div style={{ position: "absolute", left: 32, top: 30 }}><Burst count={9} radius={34} grid={PUFF} px={3} duration={0.6} /></div>}
+    </div>
+  );
+}
+
+/* =====================================================================
+ *  7. HUD — progress bar / controls / dialog / modal
+ * ===================================================================== */
+function ProgressBar({ gates }) {
+  const done = gates.filter((g) => g.state !== "locked").length;
+  return (
+    <div className="absolute left-1/2 z-40 select-none pointer-events-none" style={{ top: "max(10px, env(safe-area-inset-top, 0px))", transform: "translateX(-50%)" }}>
+      <div className="wq-wood-frame">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="wq-pixel text-[9px] text-[#FFE6B0] tracking-wider">QUEST</span>
+          <span className="wq-pixel text-[9px] text-[#FFC24A] ml-auto">{done}/5</span>
+        </div>
+        <div className="relative" style={{ width: "min(360px, 58vw)", height: 18, background: "#3A2414", border: "2px solid #1E0F06", boxShadow: "inset 0 2px 0 #1E0F06" }}>
+          <motion.div initial={false} animate={{ width: `${done * 20}%` }} transition={{ type: "spring", stiffness: 90, damping: 16 }}
+            style={{ height: "100%", background: "linear-gradient(#FFD27A 0 25%, #FF9A1F 25% 75%, #D9700C 75%)" }} />
+          {gates.map((g, i) => (
+            <div key={g.id} style={{ position: "absolute", left: `${i * 20 + 17}%`, top: "50%", transform: "translate(-50%,-55%)" }}>
+              <motion.div animate={g.state !== "locked" ? { scale: [1, 1.5, 1], rotate: [0, -12, 0] } : {}} transition={{ duration: 0.5 }}>
+                <PixelArt grid={g.state !== "locked" ? LOCK_OPEN : LOCK} px={1.6} />
+              </motion.div>
+            </div>
+          ))}
+        </div>
+        <div className="relative" style={{ height: 12, marginTop: 3 }}>
+          {gates.map((g, i) => (
+            <span key={g.id} className="wq-pixel absolute text-[8px]" style={{ left: `${i * 20 + 17}%`, transform: "translateX(-50%)", color: g.state !== "locked" ? "#FFC24A" : "#E8D2AE" }}>{i + 1}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Controls({ dpadRef, onA, visible }) {
+  const bind = (dir) => ({
+    onPointerDown: (e) => { e.preventDefault(); e.currentTarget.setPointerCapture?.(e.pointerId); dpadRef.current[dir] = true; },
+    onPointerUp: () => { dpadRef.current[dir] = false; },
+    onPointerCancel: () => { dpadRef.current[dir] = false; },
+    onLostPointerCapture: () => { dpadRef.current[dir] = false; },
+  });
+  const Arrow = ({ rot }) => (
+    <svg width="18" height="18" viewBox="0 0 9 9" shapeRendering="crispEdges" style={{ transform: `rotate(${rot}deg)` }}>
+      <rect x="4" y="1" width="1" height="1" fill="#F2F2F2" /><rect x="3" y="2" width="3" height="1" fill="#F2F2F2" /><rect x="2" y="3" width="5" height="1" fill="#F2F2F2" /><rect x="1" y="4" width="7" height="1" fill="#F2F2F2" /><rect x="3" y="5" width="3" height="3" fill="#F2F2F2" />
+    </svg>
+  );
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+          className="absolute z-40 flex items-end gap-3 select-none"
+          style={{ right: "max(16px, env(safe-area-inset-right, 0px))", bottom: "max(16px, env(safe-area-inset-bottom, 0px))", touchAction: "none" }}>
+          <div className="wq-dpad">
+            <button aria-label="위" className="wq-dbtn" style={{ left: 44, top: 6 }} {...bind("up")}><Arrow rot={0} /></button>
+            <button aria-label="아래" className="wq-dbtn" style={{ left: 44, top: 82 }} {...bind("down")}><Arrow rot={180} /></button>
+            <button aria-label="왼쪽" className="wq-dbtn" style={{ left: 6, top: 44 }} {...bind("left")}><Arrow rot={-90} /></button>
+            <button aria-label="오른쪽" className="wq-dbtn" style={{ left: 82, top: 44 }} {...bind("right")}><Arrow rot={90} /></button>
+            <div style={{ position: "absolute", left: 50, top: 50, width: 26, height: 26, borderRadius: 999, background: "rgba(0,0,0,0.35)" }} />
+          </div>
+          <motion.button whileTap={{ scale: 0.88 }} aria-label="상호작용 A" className="wq-abtn wq-pixel" onPointerDown={(e) => { e.preventDefault(); onA(); }}>A</motion.button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function Avatar({ who, outfit, expression, px }) {
+  const { grid, palette } = getSprite(who, "front", outfit, 0, expression, true);
+  return (
+    <div style={{ position: "relative" }}>
+      {who === "seoyeon" && outfit === "wedding" && (
+        <div style={{ position: "absolute", left: 0, top: 0, transform: `scale(${px / 2})`, transformOrigin: "0 0" }}><Veil view="front" layer="back" /></div>
+      )}
+      <PixelArt grid={grid} palette={palette} px={px} />
+      <AnimatePresence>
+        {expression === "heart" && (
+          <motion.div key="h" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: -6 }} exit={{ opacity: 0 }} transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse" }}
+            style={{ position: "absolute", right: -px * 2, top: -px * 2, color: "#FF4766" }}>
+            <Heart size={px * 4} fill="#FF4766" strokeWidth={0} />
+          </motion.div>
+        )}
+        {expression === "determined" && (
+          <motion.div key="d" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: [1, 1.2, 1] }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
+            style={{ position: "absolute", left: -px * 3, top: px, color: "#FFB800" }}>
+            <Sparkles size={px * 4} strokeWidth={2.5} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function DialogBox({ line, typed, onNext, outfit, compact }) {
+  const done = typed >= line.text.length;
+  const px = compact ? 5 : 7;
+  return (
+    <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ type: "spring", stiffness: 260, damping: 24 }}
+      className="absolute left-1/2 z-50"
+      style={{ bottom: "max(14px, env(safe-area-inset-bottom, 0px))", width: "min(880px, calc(100% - 32px))", x: "-50%" }}>
+      <div className="wq-dialog" onClick={onNext} role="button" tabIndex={0} aria-label="다음 대사">
+        {["tl", "tr", "bl", "br"].map((c) => <span key={c} className={`wq-corner wq-${c}`} />)}
+        <div className="wq-nameplate">{SPEAKER_NAME[line.speaker]}</div>
+        <p className="wq-dialog-text" style={{ paddingRight: px * 16 + 18 }}>
+          {line.text.slice(0, typed)}
+          <span style={{ opacity: 0 }}>{line.text.slice(typed)}</span>
+        </p>
+        {done && (
+          <motion.div animate={{ y: [0, 4, 0] }} transition={{ duration: 0.7, repeat: Infinity }} className="absolute" style={{ right: px * 16 + 24, bottom: 12 }}>
+            <PixelArt grid={G("kkkkkkk", ".kzzzk.", "..kzk..", "...k...")} px={2.5} />
+          </motion.div>
+        )}
+        <AnimatePresence mode="popLayout">
+          <motion.div key={line.speaker} initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
+            className="absolute" style={{ right: 16, bottom: 5 }}>
+            <motion.div key={line.expression} initial={{ scale: 0.92 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 12 }} style={{ originY: 1 }}>
+              <Avatar who={line.speaker} outfit={outfit} expression={line.expression} px={px} />
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
+function MiniHead({ who, wedding }) {
+  const { grid, palette } = getSprite(who, "front", wedding ? "wedding" : "casual", 0, "smile", true);
+  return <PixelArt grid={grid.slice(0, 15)} palette={palette} px={1.8} />;
+}
+
+function ModalContent({ content }) {
+  if (content.type === "compare") {
+    return (
+      <div>
+        <div className="grid grid-cols-2 border-b-2 border-[#B89A6A]">
+          {[content.left, content.right].map((side, i) => (
+            <div key={i} className={`flex flex-col items-center gap-2 pb-3 ${i === 0 ? "border-r-2 border-[#B89A6A]" : ""}`}>
+              <div className="wq-pixel text-[10px] text-[#3A2414]">{side.title} <span className="wq-ko text-[13px] text-[#7A5530]">{side.sub}</span></div>
+              <div className="flex gap-1 items-end">
+                <MiniHead who="jaehoon" wedding={side.wedding} />
+                <MiniHead who="seoyeon" wedding={side.wedding} />
+              </div>
+              <div className="flex items-center" style={{ width: "70%" }}>
+                {[0, 1, 2].map((d) => (
+                  <React.Fragment key={d}>
+                    <span style={{ width: 10, height: 10, background: d === 0 || side.wedding ? "#E0A040" : "#C8B48E", border: "2px solid #5C4028", borderRadius: 99, flexShrink: 0 }} />
+                    {d < 2 && <span style={{ flex: 1, height: 3, background: "#5C4028" }} />}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        {content.rows.map((row, i) => (
+          <div key={i} className="grid items-center border-b border-[#CDB58A] py-2" style={{ gridTemplateColumns: "1fr auto auto auto 1fr" }}>
+            <span className="wq-ko text-right pr-2 text-[15px] text-[#3A2414]">{row.a}</span>
+            <PixelArt grid={row.aOk ? CHECK : CROSS} px={2} />
+            <span className="wq-pixel text-[8px] text-[#7A5530] px-2">vs</span>
+            <PixelArt grid={row.bOk ? CHECK : CROSS} px={2} />
+            <span className="wq-ko pl-2 text-[15px] text-[#3A2414]">{row.b}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (content.type === "checklist") {
+    return (
+      <ul className="flex flex-col gap-2">
+        {content.items.map((it, i) => (
+          <motion.li key={i} initial={{ x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.15 + i * 0.08 }}
+            className="flex items-center gap-3 border-b border-[#CDB58A] pb-2">
+            <span style={{ width: 22, height: 22, border: "3px solid #5C4028", background: it.done ? "#FFF6DC" : "#E8D6B0", display: "grid", placeItems: "center", flexShrink: 0 }}>
+              {it.done && <PixelArt grid={CHECK} px={1.8} />}
+            </span>
+            <span className={`wq-ko text-[16px] ${it.done ? "text-[#3A2414]" : "text-[#9A7A54]"}`}>{it.text}</span>
+            {!it.done && <span className="wq-pixel text-[8px] ml-auto text-[#C25A2A]">TODO</span>}
+          </motion.li>
+        ))}
+      </ul>
+    );
+  }
+  // timeline
+  return (
+    <ol className="relative flex flex-col gap-3 pl-2">
+      <span className="absolute" style={{ left: 17, top: 8, bottom: 8, width: 4, background: "#5C4028" }} />
+      {content.steps.map((s, i) => (
+        <motion.li key={i} initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 + i * 0.08 }} className="relative flex items-start gap-3">
+          <span style={{ width: 22, height: 22, background: i === content.steps.length - 1 ? "#FF8820" : "#E0A040", border: "3px solid #3A2414", boxShadow: "inset -3px -3px 0 rgba(0,0,0,.18)", flexShrink: 0, zIndex: 1 }} />
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="wq-pixel text-[9px] text-[#B5521C]">{s.label}</span>
+              <span className="wq-ko text-[16px] text-[#3A2414]">{s.title}</span>
+            </div>
+            <div className="wq-ko text-[13px] text-[#7A5530]">{s.desc}</div>
+          </div>
+        </motion.li>
+      ))}
+    </ol>
+  );
+}
+
+function QuestModal({ gate, onUnlock }) {
+  return (
+    <motion.div className="absolute inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(20,12,6,0.55)", padding: 16 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <motion.div initial={{ scale: 0.5, y: 40, rotate: -2 }} animate={{ scale: 1, y: 0, rotate: 0 }} exit={{ scale: 0.6, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 260, damping: 18 }} className="wq-board" role="dialog" aria-label={gate.modalTitle}>
+        {["tl", "tr", "bl", "br"].map((c) => <span key={c} className={`wq-bracket wq-${c}`} />)}
+        <div className="wq-parchment">
+          <div className="wq-pixel text-[9px] text-[#9A6A3A] text-center mb-1">GATE {gate.id} / 5</div>
+          <h2 className="wq-title">{gate.modalTitle}</h2>
+          {gate.modalContent.caption && <p className="wq-ko text-center text-[13px] text-[#8A6640] mb-3">{gate.modalContent.caption}</p>}
+          <ModalContent content={gate.modalContent} />
+          <div className="flex justify-center mt-5 relative">
+            {[[-90, -6], [86, -10], [-70, 26], [96, 22]].map(([x, y], i) => (
+              <motion.span key={i} className="absolute" style={{ left: "50%", top: 6, x, y, color: "#FFC21F" }}
+                animate={{ opacity: [0, 1, 0], scale: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.35 }}>
+                <Sparkles size={16} strokeWidth={2.5} />
+              </motion.span>
+            ))}
+            <motion.button className="wq-unlock" onClick={onUnlock} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }}
+              animate={{ boxShadow: ["0 0 0 0 rgba(255,194,31,.0), 0 5px 0 #7A4A08", "0 0 26px 6px rgba(255,194,31,.75), 0 5px 0 #7A4A08", "0 0 0 0 rgba(255,194,31,.0), 0 5px 0 #7A4A08"] }}
+              transition={{ duration: 1.6, repeat: Infinity }}>
+              <span className="wq-pixel">UNLOCK</span>
+              <PixelArt grid={LOCK_OPEN} px={1.6} />
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function Petals({ count = 34 }) {
+  const petals = useMemo(() => Array.from({ length: count }).map((_, i) => {
+    const r = rng(i * 13 + 5);
+    return { left: r() * 100, delay: r() * 4, dur: 4 + r() * 4, drift: (r() - 0.5) * 160, size: 4 + Math.floor(r() * 3) * 2, c: r() < 0.5 ? "#F7B7CB" : "#FFD6E2" };
+  }), [count]);
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-[45]">
+      {petals.map((p, i) => (
+        <motion.div key={i} style={{ position: "absolute", left: `${p.left}%`, top: -20, width: p.size, height: p.size * 0.7, background: p.c, boxShadow: `${p.size / 2}px ${p.size / 2}px 0 #EE8FB0` }}
+          animate={{ y: ["0vh", "110vh"], x: [0, p.drift], rotate: [0, 360] }} transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: "linear" }} />
+      ))}
+    </div>
+  );
+}
+
+function heartPolygon(cx, cy, size) {
+  const pts = [];
+  for (let i = 0; i < 64; i++) {
+    const t = (i / 64) * Math.PI * 2;
+    const x = 16 * Math.pow(Math.sin(t), 3);
+    const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+    pts.push(`${(cx + (x / 17) * size).toFixed(1)}px ${(cy + (y / 17) * size + size * 0.12).toFixed(1)}px`);
+  }
+  return `polygon(${pts.join(",")})`;
+}
+
+function Finale({ onRestart }) {
+  const bride = getSprite("seoyeon", "front", "wedding", 0, "heart");
+  const groom = getSprite("jaehoon", "front", "wedding", 0, "heart");
+  return (
+    <motion.div className="absolute inset-0 z-[80] flex flex-col items-center justify-center gap-6 text-center" style={{ background: "#120A10", padding: 16 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
+      <Petals count={26} />
+      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 160, damping: 12, delay: 0.3 }} className="relative flex items-end gap-1">
+        <motion.div className="absolute" style={{ left: "50%", top: -46, x: "-50%", color: "#FF4766" }} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.9, repeat: Infinity }}>
+          <Heart size={40} fill="#FF4766" strokeWidth={0} />
+        </motion.div>
+        <div style={{ position: "relative" }}>
+          <div style={{ position: "absolute", left: 0, top: 0, transform: "scale(2)", transformOrigin: "0 0" }}><Veil view="front" layer="back" /></div>
+          <PixelArt grid={bride.grid} palette={bride.palette} px={4} />
+        </div>
+        <PixelArt grid={groom.grid} palette={groom.palette} px={4} />
+      </motion.div>
+      <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }}>
+        <div className="wq-pixel text-[#FFD23F] text-[18px] sm:text-[24px] leading-relaxed" style={{ textShadow: "0 3px 0 #8A3A10" }}>HAPPY EVER AFTER</div>
+        <div className="wq-ko text-[#FFE4EE] text-[18px] mt-3">서연 ♥ 재훈 · 2028 WEDDING</div>
+        <div className="wq-ko text-[#C9A9B8] text-[14px] mt-1">다섯 개의 관문을 모두 열었어요. 앞으로의 길도 함께!</div>
+      </motion.div>
+      <motion.button initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.2 }} whileTap={{ scale: 0.94 }}
+        onClick={onRestart} className="wq-unlock" style={{ gap: 10 }}>
+        <RotateCcw size={18} strokeWidth={3} color="#5A3406" />
+        <span className="wq-ko text-[17px]">처음부터 다시 하기</span>
+      </motion.button>
+    </motion.div>
+  );
+}
+
+/* =====================================================================
+ *  8. GAME ENGINE
+ * ===================================================================== */
+function canStand(x, y, gates) {
+  const pts = [[x - 9, y - 1], [x + 9, y - 1], [x - 9, y - 10], [x + 9, y - 10]];
+  for (const [px, py] of pts) {
+    if (px < 2 || px > W - 2 || py < 0 || py > H - 1) return false;
+    if (!isPath(Math.floor(px / T), Math.floor(py / T))) return false;
+    for (const g of gates) {
+      if (g.state === "open") continue;
+      const d = GATE_BY_ID[g.id];
+      if (px >= d.x * T + 1 && px <= (d.x + 2) * T - 1 && py >= d.y * T + 8 && py <= (d.y + 2) * T - 6) return false;
+    }
+  }
+  return true;
+}
+function findNearGate(x, y, gates) {
+  for (const g of gates) {
+    if (g.state !== "locked") continue;
+    const d = GATE_BY_ID[g.id];
+    const pad = 26;
+    if (x >= d.x * T - pad && x <= (d.x + 2) * T + pad && y - 5 >= d.y * T - pad && y - 5 <= (d.y + 2) * T + pad) return g.id;
+  }
+  return null;
+}
+const dirFrom = (dx, dy, fallback) => {
+  if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return fallback;
+  return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up";
+};
+const freshSim = () => ({
+  lx: START.x, ly: START.y, ldir: "down", lwalk: 0,
+  fx: START.x, fy: START.y - FOLLOW_GAP, fdir: "down", fwalk: 0,
+  trail: [{ x: START.x, y: START.y - FOLLOW_GAP }, { x: START.x, y: START.y }],
+  moving: false, goal: false, t: 0,
+});
+const freshGates = () => QUEST_GATES.map((g) => ({ id: g.id, state: "locked" }));
+
+export default function WeddingQuestGame() {
+  const rootRef = useRef(null);
+  const layerRef = useRef(null);
+  const simRef = useRef(freshSim());
+  const keysRef = useRef(new Set());
+  const dpadRef = useRef({ up: false, down: false, left: false, right: false });
+  const phaseRef = useRef("dialog");
+  const gatesRef = useRef(freshGates());
+  const nearRef = useRef(null);
+  const actionsRef = useRef({});
+  const heartCenterRef = useRef({ x: 0, y: 0 });
+  const timersRef = useRef([]);
+
+  const [phase, setPhaseState] = useState("dialog"); // dialog | play | modal | cutscene | propose | iris | finale
+  const [dialog, setDialog] = useState({ kind: "intro", lines: INTRO_DIALOGS, index: 0 });
+  const [typed, setTyped] = useState(0);
+  const [modalGate, setModalGate] = useState(null);
+  const [gates, setGates] = useState(gatesRef.current);
+  const [near, setNear] = useState(null);
+  const [outfit, setOutfit] = useState("casual");
+  const [flash, setFlash] = useState(0);
+  const [petals, setPetals] = useState(false);
+  const [vp, setVp] = useState({ w: 1280, h: 720 });
+  const [, setTick] = useState(0);
+
+  const setPhase = (p) => { phaseRef.current = p; setPhaseState(p); };
+  const later = (fn, ms) => timersRef.current.push(setTimeout(fn, ms));
+  const updateGate = (id, state) => {
+    gatesRef.current = gatesRef.current.map((g) => (g.id === id ? { ...g, state } : g));
+    setGates(gatesRef.current);
+  };
+
+  // viewport size
+  useEffect(() => {
+    const el = rootRef.current;
+    const measure = () => setVp({ w: el.clientWidth, h: el.clientHeight });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // typing effect
+  useEffect(() => {
+    if (phase !== "dialog") return;
+    const len = dialog.lines[dialog.index].text.length;
+    setTyped(0);
+    const id = setInterval(() => setTyped((t) => (t >= len ? t : t + 1)), 34);
+    return () => clearInterval(id);
+  }, [dialog, phase]);
+
+  const openDialog = (d) => { setTyped(0); setDialog({ ...d, index: 0 }); setPhase("dialog"); };
+
+  const advance = () => {
+    const line = dialog.lines[dialog.index];
+    if (typed < line.text.length) { setTyped(line.text.length); return; }
+    if (dialog.index < dialog.lines.length - 1) { setTyped(0); setDialog({ ...dialog, index: dialog.index + 1 }); return; }
+    if (dialog.kind === "gate") { setModalGate(dialog.gateId); setPhase("modal"); }
+    else if (dialog.kind === "wedding") setPhase("propose");
+    else setPhase("play");
+  };
+
+  const unlock = () => {
+    const id = modalGate;
+    if (id == null) return;
+    setModalGate(null);
+    setPhase("play");
+    updateGate(id, "opening");
+    later(() => updateGate(id, "poof"), 1000);
+    later(() => updateGate(id, "open"), 1500);
+  };
+
+  const reachGoal = () => {
+    setPhase("cutscene");
+    setFlash((f) => f + 1);
+    setPetals(true);
+    later(() => {
+      const s = simRef.current;
+      setOutfit("wedding");
+      Object.assign(s, { lx: 28.95 * T, ly: 14.55 * T, ldir: "down", fx: 30.05 * T, fy: 14.55 * T, fdir: "down", moving: false });
+      setTick((t) => t + 1);
+    }, 260);
+    later(() => openDialog({ kind: "wedding", lines: WEDDING_DIALOGS }), 1500);
+  };
+
+  const interact = () => {
+    const ph = phaseRef.current;
+    if (ph === "play" && nearRef.current != null) {
+      const g = GATE_BY_ID[nearRef.current];
+      openDialog({ kind: "gate", gateId: g.id, lines: g.dialogs });
+    } else if (ph === "dialog") advance();
+    else if (ph === "modal") unlock();
+    else if (ph === "propose") accept();
+  };
+
+  const accept = () => { if (phaseRef.current === "propose") setPhase("iris"); };
+
+  const restart = () => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    simRef.current = freshSim();
+    gatesRef.current = freshGates();
+    nearRef.current = null;
+    setGates(gatesRef.current);
+    setNear(null);
+    setOutfit("casual");
+    setPetals(false);
+    setModalGate(null);
+    if (layerRef.current) layerRef.current.style.clipPath = "";
+    openDialog({ kind: "intro", lines: INTRO_DIALOGS });
+  };
+
+  actionsRef.current = { interact, reachGoal };
+
+  // keyboard
+  useEffect(() => {
+    const MOVE = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyW", "KeyA", "KeyS", "KeyD"];
+    const down = (e) => {
+      if (MOVE.includes(e.code)) { keysRef.current.add(e.code); e.preventDefault(); }
+      if (["Space", "Enter", "KeyE", "KeyZ"].includes(e.code)) {
+        e.preventDefault();
+        if (!e.repeat) actionsRef.current.interact();
+      }
+    };
+    const up = (e) => keysRef.current.delete(e.code);
+    const blur = () => keysRef.current.clear();
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", blur);
+    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); window.removeEventListener("blur", blur); };
+  }, []);
+
+  // main loop (requestAnimationFrame)
+  useEffect(() => {
+    let raf;
+    let last = performance.now();
+    const step = (now) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const s = simRef.current;
+      let changed = false;
+      if (phaseRef.current === "play") {
+        const k = keysRef.current, d = dpadRef.current;
+        let dx = (k.has("ArrowRight") || k.has("KeyD") || d.right ? 1 : 0) - (k.has("ArrowLeft") || k.has("KeyA") || d.left ? 1 : 0);
+        let dy = (k.has("ArrowDown") || k.has("KeyS") || d.down ? 1 : 0) - (k.has("ArrowUp") || k.has("KeyW") || d.up ? 1 : 0);
+        if (dx || dy) {
+          const len = Math.hypot(dx, dy);
+          dx /= len; dy /= len;
+          const gs = gatesRef.current;
+          let nx = s.lx, ny = s.ly;
+          if (canStand(s.lx + dx * SPEED * dt, s.ly, gs)) nx = s.lx + dx * SPEED * dt;
+          if (canStand(nx, s.ly + dy * SPEED * dt, gs)) ny = s.ly + dy * SPEED * dt;
+          s.ldir = dirFrom(dx, dy, s.ldir);
+          const moved = Math.hypot(nx - s.lx, ny - s.ly);
+          s.lx = nx; s.ly = ny; s.lwalk += moved;
+          if (moved > 0.01) {
+            s.trail.push({ x: nx, y: ny });
+            if (s.trail.length > 500) s.trail.splice(0, 100);
+            // follower: point FOLLOW_GAP behind along the leader's trail
+            let dist = 0, px = s.lx, py = s.ly;
+            for (let i = s.trail.length - 1; i >= 0; i--) {
+              const p = s.trail[i];
+              const seg = Math.hypot(p.x - px, p.y - py);
+              if (dist + seg >= FOLLOW_GAP && seg > 0) {
+                const t = (FOLLOW_GAP - dist) / seg;
+                const fx = px + (p.x - px) * t, fy = py + (p.y - py) * t;
+                const fdx = fx - s.fx, fdy = fy - s.fy;
+                s.fdir = dirFrom(fdx, fdy, s.fdir);
+                s.fwalk += Math.hypot(fdx, fdy);
+                s.fx = fx; s.fy = fy;
+                break;
+              }
+              dist += seg; px = p.x; py = p.y;
+            }
+          }
+          s.moving = moved > 0.01;
+          changed = true;
+        } else if (s.moving) { s.moving = false; changed = true; }
+        const n = findNearGate(s.lx, s.ly, gatesRef.current);
+        if (n !== nearRef.current) { nearRef.current = n; setNear(n); }
+        if (!s.goal && s.lx > GOAL_X && gatesRef.current.every((g) => g.state === "open")) {
+          s.goal = true;
+          actionsRef.current.reachGoal();
+        }
+      } else if (s.moving) { s.moving = false; changed = true; }
+      if (changed) setTick((t) => (t + 1) % 1e6);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // heart iris-out (CSS clip-path)
+  useEffect(() => {
+    if (phase !== "iris") return;
+    const el = layerRef.current;
+    const { x: cx, y: cy } = heartCenterRef.current;
+    const maxR = Math.hypot(el.clientWidth, el.clientHeight) * 1.25;
+    const small = Math.max(70, Math.min(el.clientWidth, el.clientHeight) * 0.16);
+    const t0 = performance.now();
+    const ease = (p) => 1 - Math.pow(1 - p, 3);
+    let raf;
+    const tick = (now) => {
+      const t = (now - t0) / 1000;
+      let size;
+      if (t < 1.1) size = maxR + (small - maxR) * ease(t / 1.1);
+      else if (t < 1.9) size = small * (1 + 0.08 * Math.sin((t - 1.1) * Math.PI * 2.5));
+      else size = small * Math.max(0, 1 - Math.pow((t - 1.9) / 0.45, 2));
+      el.style.clipPath = heartPolygon(cx, cy, size);
+      if (t < 2.35) raf = requestAnimationFrame(tick);
+      else { el.style.clipPath = heartPolygon(cx, cy, 0); later(() => setPhase("finale"), 400); }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
+  useEffect(() => () => timersRef.current.forEach(clearTimeout), []);
+
+  /* ---------- camera ---------- */
+  const s = simRef.current;
+  const portrait = vp.w < vp.h;
+  const scale = Math.max(Math.min(vp.w / W, vp.h / H), portrait ? Math.min(1.2, (vp.h / H) * 0.85) : 0);
+  const axis = (view, world, focus) => (world * scale <= view ? (view - world * scale) / 2 : Math.min(0, Math.max(view - world * scale, view / 2 - focus * scale)));
+  const offX = axis(vp.w, W, s.lx);
+  const offY = axis(vp.h, H, s.ly - 40);
+  heartCenterRef.current = { x: offX + ((s.lx + s.fx) / 2) * scale, y: offY + (Math.min(s.ly, s.fy) - 30) * scale };
+
+  const bobL = s.moving ? -Math.abs(Math.sin(s.lwalk / 7)) * 2.5 : 0;
+  const bobF = s.moving ? -Math.abs(Math.sin(s.fwalk / 7 + 1)) * 2.5 : 0;
+  const frameL = s.moving ? Math.floor(s.lwalk / 11) % 2 : 0;
+  const frameF = s.moving ? Math.floor(s.fwalk / 11) % 2 : 0;
+
+  const currentLine = phase === "dialog" ? dialog.lines[dialog.index] : null;
+  const compact = vp.w < 640;
+
+  return (
+    <div ref={rootRef} className="wq-root relative w-full h-full overflow-hidden select-none" style={{ background: "#0E0A0C" }}>
+      <style>{CSS}</style>
+      <div ref={layerRef} className="absolute inset-0" style={{ background: "#2E5418" }}>
+        {/* ---------- WORLD ---------- */}
+        <div className="absolute" style={{ left: 0, top: 0, width: W, height: H, transformOrigin: "0 0", transform: `translate(${offX}px, ${offY}px) scale(${scale})` }}>
+          <Ground />
+          <div style={{ position: "absolute", left: 2.5 * T - 4, top: 2.45 * T - 82, zIndex: Math.round(2.45 * T) }}><StartBanner /></div>
+          <div style={{ position: "absolute", left: ARCH.x - 62, top: ARCH.y - 180, zIndex: Math.round(13.6 * T) }}><WeddingArch /></div>
+          {PROPS.map((p, i) => <PropNode key={i} p={p} />)}
+          {QUEST_GATES.map((g) => (
+            <div key={`s${g.id}`} style={{ position: "absolute", left: g.sign.x * T - 20, top: g.sign.y * T - 40, zIndex: Math.round(g.sign.y * T) }}>
+              <SignPost num={g.id} arrow={g.sign.arrow} />
+            </div>
+          ))}
+          {QUEST_GATES.map((g) => (
+            <Gate key={g.id} gate={g} state={gates.find((x) => x.id === g.id).state} />
+          ))}
+          <AnimatePresence>
+            {near != null && phase === "play" && (
+              <motion.div key={`tip${near}`} initial={{ opacity: 0, y: 8, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.8 }}
+                style={{ position: "absolute", left: s.lx, top: s.ly - 86, x: "-50%", zIndex: 5000, pointerEvents: "none" }}>
+                <div className="wq-bubble">Space 또는 <b className="wq-akey">A</b> 버튼으로 열기!</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <Character who="jaehoon" x={s.fx} y={s.fy} dir={s.fdir} frame={frameF} bob={bobF} outfit={outfit} />
+          <Character who="seoyeon" x={s.lx} y={s.ly} dir={s.ldir} frame={frameL} bob={bobL} outfit={outfit} />
+        </div>
+
+        {/* ---------- HUD ---------- */}
+        <ProgressBar gates={gates} />
+        <div className="absolute z-40 hidden sm:flex items-center gap-2 wq-hint" style={{ left: "max(16px, env(safe-area-inset-left, 0px))", top: "max(14px, env(safe-area-inset-top, 0px))" }}>
+          <span className="wq-key">←↑↓→</span><span className="wq-key">WASD</span><span>이동</span>
+          <span className="wq-key">Space</span><span>상호작용</span>
+        </div>
+        <Controls dpadRef={dpadRef} onA={() => actionsRef.current.interact()} visible={phase === "play"} />
+
+        {petals && <Petals />}
+        <AnimatePresence>
+          {flash > 0 && phase === "cutscene" && (
+            <motion.div key={`f${flash}`} className="absolute inset-0 z-[55] bg-white pointer-events-none" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.7 }} />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {currentLine && (
+            <DialogBox key="dlg" line={currentLine} typed={typed} onNext={() => actionsRef.current.interact()} outfit={outfit} compact={compact} />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {phase === "modal" && modalGate != null && <QuestModal key="modal" gate={GATE_BY_ID[modalGate]} onUnlock={unlock} />}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {phase === "propose" && (
+            <motion.div key="yes" className="absolute left-1/2 z-[60] flex flex-col items-center gap-3" style={{ bottom: "max(48px, env(safe-area-inset-bottom, 0px))", x: "-50%" }}
+              initial={{ y: 60, opacity: 0, scale: 0.6 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 240, damping: 14 }}>
+              <div className="wq-bubble" style={{ fontSize: 15 }}>재훈의 프로포즈에 대답해 주세요!</div>
+              <motion.button className="wq-yes" onClick={accept} whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.92 }}
+                animate={{ boxShadow: ["0 0 0 0 rgba(255,71,102,0), 0 6px 0 #8E1030", "0 0 34px 10px rgba(255,71,102,.7), 0 6px 0 #8E1030", "0 0 0 0 rgba(255,71,102,0), 0 6px 0 #8E1030"] }}
+                transition={{ duration: 1.3, repeat: Infinity }}>
+                <span className="wq-pixel">YES!</span>
+                <Heart size={22} fill="#fff" strokeWidth={0} />
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence>{phase === "finale" && <Finale key="fin" onRestart={restart} />}</AnimatePresence>
+    </div>
+  );
+}
+
+/* =====================================================================
+ *  9. STYLES (fonts + pixel UI chrome)
+ * ===================================================================== */
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Press+Start+2P&display=swap');
+.wq-root { font-family: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; -webkit-tap-highlight-color: transparent; }
+.wq-pixel { font-family: 'Press Start 2P', 'Courier New', monospace; letter-spacing: .02em; }
+.wq-ko { font-family: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+.wq-wood-frame { background: #6E472B; border: 3px solid #2E1A0C; box-shadow: inset 0 0 0 2px #A8743E, inset 0 0 0 4px #4A2E18, 0 4px 0 rgba(0,0,0,.45); padding: 7px 14px 4px; border-radius: 4px; }
+.wq-hint { color: #F4F1E4; font-size: 13px; background: rgba(20,14,8,.55); padding: 6px 10px; border-radius: 4px; border: 2px solid rgba(0,0,0,.4); }
+.wq-key { font-family: 'Press Start 2P', monospace; font-size: 8px; background: #F5EBD6; color: #3A2414; padding: 3px 5px; border-radius: 2px; box-shadow: 0 2px 0 #8A6A44; }
+.wq-bubble { position: relative; font-family: 'Jua', sans-serif; font-size: 13px; color: #3A2414; background: #FFF8E8; border: 3px solid #3A2414; padding: 6px 10px; box-shadow: 0 3px 0 rgba(0,0,0,.3); white-space: nowrap; }
+.wq-bubble::after { content: ''; position: absolute; left: 50%; bottom: -9px; width: 10px; height: 10px; background: #FFF8E8; border-right: 3px solid #3A2414; border-bottom: 3px solid #3A2414; transform: translateX(-50%) rotate(45deg); }
+.wq-akey { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 99px; background: #3A3A3A; color: #fff; font-family: 'Press Start 2P', monospace; font-size: 8px; vertical-align: middle; }
+.wq-dpad { position: relative; width: 126px; height: 126px; border-radius: 999px; background: rgba(40,40,44,.55); border: 3px solid rgba(255,255,255,.18); box-shadow: inset 0 0 0 6px rgba(0,0,0,.18); backdrop-filter: blur(2px); }
+.wq-dbtn { position: absolute; width: 38px; height: 38px; display: grid; place-items: center; background: rgba(90,90,96,.85); border: 3px solid #1E1E22; border-radius: 6px; box-shadow: inset 0 -4px 0 rgba(0,0,0,.35), inset 0 3px 0 rgba(255,255,255,.18); cursor: pointer; touch-action: none; }
+.wq-dbtn:active { transform: translateY(2px); box-shadow: inset 0 -1px 0 rgba(0,0,0,.35); }
+.wq-dbtn:focus-visible, .wq-abtn:focus-visible, .wq-unlock:focus-visible, .wq-yes:focus-visible { outline: 3px solid #FFC21F; outline-offset: 3px; }
+.wq-abtn { width: 64px; height: 64px; border-radius: 999px; background: radial-gradient(circle at 35% 30%, #8C8C94, #4A4A52 70%); color: #F2F2F2; font-size: 18px; border: 3px solid #1E1E22; box-shadow: inset 0 -5px 0 rgba(0,0,0,.35), 0 4px 0 rgba(0,0,0,.4); cursor: pointer; touch-action: none; margin-bottom: 30px; }
+.wq-dialog { position: relative; background: #F5EBD6; border: 4px solid #5C4028; box-shadow: inset 0 0 0 3px #F5EBD6, inset 0 0 0 6px #8A6440, 0 6px 0 rgba(0,0,0,.4); padding: 34px 22px 18px; min-height: 132px; cursor: pointer; outline: none; }
+.wq-dialog:focus-visible { box-shadow: inset 0 0 0 3px #F5EBD6, inset 0 0 0 6px #8A6440, 0 0 0 3px #FFC21F; }
+.wq-corner { position: absolute; width: 12px; height: 12px; background: #C8955A; border: 3px solid #3A2414; }
+.wq-tl { left: -8px; top: -8px; } .wq-tr { right: -8px; top: -8px; } .wq-bl { left: -8px; bottom: -8px; } .wq-br { right: -8px; bottom: -8px; }
+.wq-nameplate { position: absolute; left: 18px; top: -16px; background: #6E472B; color: #FFF1D6; border: 3px solid #3A2414; padding: 3px 12px; font-size: 16px; box-shadow: 0 3px 0 rgba(0,0,0,.3); }
+.wq-dialog-text { margin: 0; color: #3A2414; font-size: clamp(16px, 2.2vw, 20px); line-height: 1.65; word-break: keep-all; }
+.wq-board { position: relative; width: min(560px, 100%); max-height: calc(100% - 16px); display: flex; background: #6E472B; border: 4px solid #2E1A0C; padding: 12px; box-shadow: inset 0 0 0 3px #A8743E, inset 0 0 0 6px #4A2E18, 0 10px 0 rgba(0,0,0,.45); }
+.wq-bracket { position: absolute; width: 22px; height: 22px; border: 5px solid #C8A060; z-index: 2; }
+.wq-board .wq-tl { left: -6px; top: -6px; border-right: none; border-bottom: none; }
+.wq-board .wq-tr { right: -6px; top: -6px; border-left: none; border-bottom: none; }
+.wq-board .wq-bl { left: -6px; bottom: -6px; border-right: none; border-top: none; }
+.wq-board .wq-br { right: -6px; bottom: -6px; border-left: none; border-top: none; }
+.wq-parchment { flex: 1; min-width: 0; overflow-y: auto; background: radial-gradient(ellipse at 50% 40%, #F8EDD4 0%, #F3E5C8 60%, #E6D2A8 100%); border: 3px solid #3A2414; padding: 18px 18px 20px; box-shadow: inset 0 0 18px rgba(120,80,30,.25); }
+.wq-title { font-family: 'Jua', sans-serif; font-size: clamp(20px, 3vw, 26px); color: #3A2414; text-align: center; margin: 4px 0 8px; line-height: 1.4; text-wrap: balance; }
+.wq-unlock { display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; background: linear-gradient(#FFE88A 0 30%, #FFC21F 30% 75%, #E8A100 75%); color: #5A3406; border: 3px solid #5A3406; border-radius: 4px; font-size: 13px; cursor: pointer; }
+.wq-yes { display: inline-flex; align-items: center; gap: 12px; padding: 16px 30px; background: linear-gradient(#FF8CA2 0 30%, #FF4766 30% 75%, #D92A4E 75%); color: #fff; border: 3px solid #6A0A22; border-radius: 4px; font-size: 18px; cursor: pointer; text-shadow: 0 2px 0 #8E1030; }
+@media (prefers-reduced-motion: reduce) { .wq-root * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+`;
