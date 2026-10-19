@@ -10,3 +10,4 @@
 - 이 저장소는 저장소 전용 SSH deploy key(`.deploy-key/`, git에 올라가지 않음)로만 푸시합니다.
 - 커밋하면 `.git/hooks/post-commit` 훅이 자동으로 푸시합니다.
 - 작업을 마치면 `sh scripts/revoke-access.sh` 실행 후 GitHub에서 deploy key를 삭제하세요.
+- 이 PC의 `gh` CLI가 계정 전체 권한으로 로그인돼 있다면 `gh auth logout`도 해야 진짜로 접근이 끊깁니다.

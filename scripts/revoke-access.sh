@@ -6,4 +6,5 @@ rm -rf .deploy-key
 git config --unset core.sshCommand
 rm -f .git/hooks/post-commit
 echo "로컬 deploy key, sshCommand 설정, 자동 푸시 훅을 삭제했습니다."
-echo "남은 단계: GitHub → 저장소 Settings → Deploy keys 에서 키 삭제"
+echo "남은 단계 1: GitHub → 저장소 Settings → Deploy keys 에서 키 삭제"
+echo "남은 단계 2: 이 PC의 gh 로그인도 지우려면 → gh auth logout -h github.com -u kimseoyun98"
