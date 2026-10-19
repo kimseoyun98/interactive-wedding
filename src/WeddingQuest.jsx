@@ -11,26 +11,33 @@ import { Heart, RotateCcw, Sparkles } from "lucide-react";
  *  1. QUEST DATA — 실제 기획 텍스트는 여기만 갈아끼우면 됩니다.
  *  x, y      : 바위(2x2 타일 블록)의 좌상단 타일 좌표 (1타일 = 32px)
  *  sign      : 나무 표지판 위치 (x = 중심 타일, y = 바닥 타일), arrow: 'left' | 'right'
- *  dialogs   : speaker 'seoyeon' | 'jaehoon',  expression 'default' | 'smile' | 'determined' | 'heart'
- *  modalContent.type : 'timeline' | 'compare' | 'checklist'
+ *  dialogs   : speaker 'seoyeon'(=[예비신부]) | 'jaehoon'(=[예비신랑]),  expression 'default' | 'smile' | 'determined' | 'heart'
+ *  modal.game: 'timeline' | 'housing' | 'loan' | 'budget' | 'quiz' — 미니게임 종류 (나머지 필드는 각 미니게임 카피)
  * ===================================================================== */
 export const QUEST_GATES = [
   {
     id: 1, x: 3, y: 8,
     sign: { x: 5.6, y: 7.7, arrow: "right" },
     dialogs: [
-      { speaker: "seoyeon", expression: "default", text: "앗, 길이 커다란 바위로 막혀 있어! 황금 자물쇠까지 채워져 있네?" },
-      { speaker: "jaehoon", expression: "determined", text: "첫 번째 관문은 '상견례'래. 양가 일정부터 차근차근 맞춰보자!" },
-      { speaker: "seoyeon", expression: "smile", text: "좋아! 우리 둘이 같이 준비하면 금방이지." },
+      { speaker: "seoyeon", expression: "default", text: "첫 번째 바위야! '결혼 준비 골든타임'이라고 새겨져 있어." },
+      { speaker: "jaehoon", expression: "determined", text: "언제, 어떤 순서로 시작하느냐가 제일 중요하대. 타이밍부터 제대로 잡아보자!" },
+      { speaker: "seoyeon", expression: "smile", text: "좋아! 로드맵 퍼즐로 2년 계획을 한 번에 맞춰보자." },
     ],
-    modalTitle: "STAGE 1 · 상견례 로드맵",
-    modalContent: {
-      type: "timeline",
-      caption: "양가 인사부터 상견례까지 핵심 일정 (더미 데이터)",
-      steps: [
-        { label: "D-600", title: "각자 부모님께 먼저 인사", desc: "결혼 소식 공유 · 분위기 살피기" },
-        { label: "D-570", title: "상견례 장소 예약", desc: "양가 중간 지점 한정식집 · 룸 확보" },
-        { label: "D-540", title: "상견례 당일", desc: "예식 시기 · 규모 큰 방향 합의" },
+    modal: {
+      game: "timeline",
+      subtitle: "GATE 1 / 5 · TIMELINE PUZZLE",
+      title: "결혼 준비 골든타임 & 로드맵 퍼즐",
+      question: "Q. 가장 이상적인 결혼 준비 첫걸음 타이밍은?",
+      choices: [
+        { key: "A", correct: true, title: "27년 초 인사 & 웨딩홀 선점", desc: "인기 식장부터 빠르게 선점하고, 1년간 본가 거주하며 시드머니 극대화!", feedback: "✨ 정답! 고정지출 방어력 +1,800만 원 획득!" },
+        { key: "B", correct: false, title: "돈 다 모을 때까지 무조건 미루기", desc: "자금이 완벽히 모일 때까지 양가 인사와 식장 예약 무기한 연기", feedback: "💥 삐빅! 어른들의 신뢰도 하락 및 인기 웨딩홀 마감 위기!" },
+      ],
+      puzzleGuide: "▼ 아래 아이콘 카드를 순서대로 클릭해 2027-2028 로드맵을 완성하세요!",
+      phases: [
+        { icon: "handshake", label: "Phase 1", text: "27년 1분기 : 양가 정식 인사 & 식장 선점" },
+        { icon: "piggy", label: "Phase 2", text: "27년 연중 : 본가 거주 지출 방어 & 본업 올인" },
+        { icon: "key", label: "Phase 3", text: "27년 말 : 프로젝트 정산 & 신혼집 입주" },
+        { icon: "ring", label: "Phase 4", text: "28년 봄 : 축복 속에 본식 진행" },
       ],
     },
   },
@@ -38,99 +45,132 @@ export const QUEST_GATES = [
     id: 2, x: 7, y: 13,
     sign: { x: 6.1, y: 12.9, arrow: "right" },
     dialogs: [
-      { speaker: "jaehoon", expression: "default", text: "두 번째 바위다. 여긴 '예산' 관문이라고 적혀 있어." },
-      { speaker: "seoyeon", expression: "determined", text: "Plan A로 갈지 Plan B로 갈지, 오늘 확실히 정하자!" },
-      { speaker: "jaehoon", expression: "smile", text: "비교표 펼쳐볼게. 하나씩 같이 보자." },
+      { speaker: "jaehoon", expression: "default", text: "두 번째 관문은 '신혼집'이야. 바위에 매물 카드가 세 장 붙어 있네." },
+      { speaker: "seoyeon", expression: "determined", text: "출퇴근 거리랑 미래가치, 둘 다 챙기는 실속파로 골라보자!" },
     ],
-    modalTitle: "PLAN A vs PLAN B",
-    modalContent: {
-      type: "compare",
-      caption: "웨딩 예산 플랜 비교 (더미 데이터)",
-      left: { title: "PLAN A", sub: "(실속형)", wedding: false },
-      right: { title: "PLAN B", sub: "(풀패키지)", wedding: true },
-      rows: [
-        { a: "하객 80명 스몰", aOk: true, b: "하객 250명", bOk: false },
-        { a: "기본 데코", aOk: true, b: "플라워 풀장식", bOk: false },
-        { a: "예산 3,000만", aOk: true, b: "예산 7,000만", bOk: false },
+    modal: {
+      game: "housing",
+      subtitle: "GATE 2 / 5 · HOUSING MATCH",
+      title: "신혼집 주거 성향 진단 & 타겟 매물 선택",
+      ribbon: "🎗️ [ 직주근접 & 미래가치 실속파 타입 ]",
+      listings: [
+        { area: "마포·공덕 권역", name: "래미안·자이 대단지", size: "24평", price: "전세 7.5억", art: 0 },
+        { area: "성동·왕십리 권역", name: "센트라스·텐즈힐", size: "25평", price: "전세 8.0억", art: 1 },
+        { area: "강남·과천 접근 권역", name: "준신축 브랜드 단지", size: "24평", price: "전세 8.5억", art: 2 },
       ],
+      selectLabel: "이 매물 선택",
+      selectedLabel: "✔ 타겟 보금자리 확정!",
     },
   },
   {
     id: 3, x: 12, y: 8,
     sign: { x: 14.6, y: 11.2, arrow: "right" },
     dialogs: [
-      { speaker: "seoyeon", expression: "default", text: "세 번째는 '웨딩홀 투어' 관문이야. 체크리스트가 붙어 있어!" },
-      { speaker: "jaehoon", expression: "smile", text: "거의 다 했네. 마지막 계약만 남았어." },
+      { speaker: "seoyeon", expression: "default", text: "세 번째 바위엔 '6억 자금 조달'이라고 쓰여 있어… 금액이 어마어마해." },
+      { speaker: "jaehoon", expression: "determined", text: "은행 이자로 새는 돈부터 막아야 해. 저 황금 레버를 끝까지 당겨보자!" },
     ],
-    modalTitle: "STAGE 3 · 웨딩홀 체크리스트",
-    modalContent: {
-      type: "checklist",
-      caption: "투어 후 확인 항목 (더미 데이터)",
-      items: [
-        { text: "웨딩홀 3곳 투어 완료", done: true },
-        { text: "식대 · 보증인원 비교표 작성", done: true },
-        { text: "주차 · 대중교통 동선 확인", done: true },
-        { text: "최종 계약 & 계약금 입금", done: false },
-      ],
+    modal: {
+      game: "loan",
+      subtitle: "GATE 3 / 5 · LOAN SIMULATOR",
+      title: "6억 자금 조달 : 은행 대출 vs 가족 간 정식 차용",
+      guide: "👉 황금 레버를 오른쪽 끝까지 당겨 증발하는 은행 이자를 방어하세요!",
+      planA: { title: "Plan A : 시중 은행 대출 100%", detail: "연 금리 4.5% 기준 · 매년 2,700만 원 은행 소모", warning: "⚠️ 3년간 생돈 8,100만 원 공중 증발!" },
+      planB: { title: "Plan B : 양가 3억 정식 차용", detail: "세법 적정금리 비과세 기준 적용 · 가족 내 자산 보존", stamp: "3년간 이자 5,760만 원 방어 성공!" },
+      caption: "※ 실제 자금 집행 시점은 내년 초가 아닌 '2027년 말 입주 잔금일' 기준입니다.",
     },
   },
   {
     id: 4, x: 16, y: 3,
     sign: { x: 14.9, y: 2.9, arrow: "left" },
     dialogs: [
-      { speaker: "jaehoon", expression: "determined", text: "네 번째 관문, '신혼집'이야. 이게 제일 큰 바위 같은데?" },
-      { speaker: "seoyeon", expression: "default", text: "출퇴근 거리랑 예산, 둘 다 따져봐야 해." },
-      { speaker: "seoyeon", expression: "smile", text: "그래도 우리 집이 생긴다니 너무 설렌다!" },
+      { speaker: "jaehoon", expression: "default", text: "네 번째 관문, 결혼 후 3년 동안의 예산 배분이래." },
+      { speaker: "seoyeon", expression: "smile", text: "상환, 생활비, 시드머니까지! 통장 쪼개기 제대로 해보자." },
     ],
-    modalTitle: "HOUSE A vs HOUSE B",
-    modalContent: {
-      type: "compare",
-      caption: "신혼집 후보 비교 (더미 데이터)",
-      left: { title: "HOUSE A", sub: "(역세권 전세)", wedding: false },
-      right: { title: "HOUSE B", sub: "(신축 매매)", wedding: false },
-      rows: [
-        { a: "출퇴근 25분", aOk: true, b: "출퇴근 55분", bOk: false },
-        { a: "보증금 3억", aOk: true, b: "매매가 6억", bOk: false },
-        { a: "구축 리모델링", aOk: false, b: "신축 입주", bOk: true },
+    modal: {
+      game: "budget",
+      subtitle: "GATE 4 / 5 · BUDGET ALLOCATOR",
+      title: "결혼 후 3개년 상환 & 자산 배분 시뮬레이터",
+      poolLabel: "부부 합산 월 소득 + 연간 프로젝트 인센티브 풀(Pool)",
+      units: 10,
+      minEach: 2,
+      slots: [
+        { icon: "houseHand", title: "양가 부모님 원리금 상환", sub: "매월 정기 이자 지급 + 인센티브 원금 중도상환" },
+        { icon: "basket", title: "부부 알뜰 생활비", sub: "고정 공과금 및 식비·여가비 예산 방어" },
+        { icon: "sprout", title: "내 집 마련 시드머니 저축", sub: "3~5년 후 첫 자가 매수를 위한 종잣돈 적립" },
       ],
+      years: [
+        { label: "1년 차 (2028)", color: "#48A838" },
+        { label: "2년 차 (2029)", color: "#F08A24" },
+        { label: "3년 차 (2030)", color: "#2878D8" },
+      ],
+      doneBadge: "📈 3개년 누적 상환 및 순자산 목표 100% 달성!",
     },
   },
   {
     id: 5, x: 21, y: 9,
     sign: { x: 20.3, y: 8.6, arrow: "left" },
     dialogs: [
-      { speaker: "seoyeon", expression: "determined", text: "마지막 바위야! 이것만 열면 웨딩 아치까지 바로야!" },
-      { speaker: "jaehoon", expression: "heart", text: "'스드메 & 청첩장' 관문… 우리 진짜 결혼하는구나." },
-      { speaker: "seoyeon", expression: "heart", text: "응! 끝까지 같이 가자!" },
+      { speaker: "seoyeon", expression: "determined", text: "마지막 바위야! 최종 보스는… 양가 아버님 설득!" },
+      { speaker: "jaehoon", expression: "default", text: "두 분 스타일이 완전히 다르셔. 각자에게 맞는 화법으로 가야 해." },
+      { speaker: "seoyeon", expression: "smile", text: "할 수 있어! O/X 모의고사로 같이 연습해 보자!" },
     ],
-    modalTitle: "STAGE 5 · D-DAY 카운트다운",
-    modalContent: {
-      type: "timeline",
-      caption: "본식까지 남은 마일스톤 (더미 데이터)",
-      steps: [
-        { label: "D-120", title: "스튜디오 촬영", desc: "야외 1컷 + 실내 3컨셉" },
-        { label: "D-90", title: "드레스 · 메이크업 확정", desc: "가봉 2회 · 리허설 메이크업" },
-        { label: "D-60", title: "청첩장 발송", desc: "모바일 + 종이 청첩장 200부" },
-        { label: "D-DAY", title: "2028 WEDDING", desc: "벚꽃 아치 아래에서 만나요" },
+    modal: {
+      game: "quiz",
+      subtitle: "GATE 5 / 5 · FINAL BOSS QUIZ",
+      title: "양가 아버님 맞춤형 설득 화법 O/X 모의고사",
+      judges: [
+        { name: "자수성가 사업가형 아버님", look: "business" },
+        { name: "엘리트 병원장님형 아버님", look: "doctor" },
       ],
+      rounds: [
+        {
+          judge: 0, answer: "O",
+          text: "당장 현금이 부족하다고 인사를 1~2년 미루는 것보다, 올해 죽기 살기로 뛰어서 내년 봄에 꼭 결혼하겠다는 '직진과 패기'를 보여드려야 100% 신뢰를 얻는다!",
+          hint: "💡 힌트: 사업가형 아버님은 조건보다 '직진하는 태도와 패기'를 먼저 보세요!",
+        },
+        {
+          judge: 1, answer: "O",
+          text: "감정적으로 손을 벌리기보다, '사돈댁과의 1:1 지원 균형'과 '세법 기준 정식 차용증 및 3개년 상환 계획서(Plan B)'를 데이터로 제시해야 신뢰를 얻는다!",
+          hint: "💡 힌트: 병원장님형 아버님은 감정보다 '균형'과 '숫자로 된 계획서'를 신뢰하세요!",
+        },
+      ],
+      clearText: "🎉 두 아버님 신뢰도 100% · ALL CLEAR!",
     },
   },
 ];
 
+export const MASTER_REPORT = {
+  subtitle: "FINALE · MASTER REPORT",
+  title: "2028 웨딩 퀘스트 최종 전략 진단서",
+  medal: "🏅 [ 결혼 준비 완료도 : 100% PERFECT ]",
+  housingLabel: "선택한 첫 보금자리",
+  savedLabel: "총 방어 성공 자금",
+  saved: "+7,560만 원 세이브!",
+  savedSub: "(월세 방어 1,800만 + 이자 절감 5,760만)",
+  persuadeLabel: "양가 부모님 설득 논리",
+  persuade: "투트랙 맞춤형 전략 마스터 완료",
+  stampTop: "최종 승인",
+  stampMain: "PASS",
+  nextStage: "🚧 STAGE 2 (실전 브리핑편) 업데이트 예정 중...",
+  restart: "🔄 처음부터 다시 플레이하기",
+};
+
 export const INTRO_DIALOGS = [
   { speaker: "seoyeon", expression: "smile", text: "드디어 출발이야! 저 끝의 2028 웨딩 아치까지 함께 가보자." },
-  { speaker: "jaehoon", expression: "default", text: "가는 길에 자물쇠 바위가 5개 있대. 방향키나 WASD로 움직이고, 바위 앞에서 Space를 눌러봐." },
+  { speaker: "jaehoon", expression: "default", text: "길목마다 자물쇠 바위가 5개 있대. 방향키나 WASD로 움직이고, 바위 앞에서 Space를 눌러봐." },
   { speaker: "seoyeon", expression: "determined", text: "우리가 함께라면 어떤 난관도 해결할 수 있어! 조금만 더 힘내자!" },
 ];
 
 export const WEDDING_DIALOGS = [
   { speaker: "seoyeon", expression: "heart", text: "와아… 드디어 도착했어! 벚꽃 좀 봐, 너무 예쁘다!" },
-  { speaker: "jaehoon", expression: "smile", text: "서연아, 다섯 개의 관문을 전부 함께 넘어줘서 고마워." },
+  { speaker: "jaehoon", expression: "smile", text: "다섯 개의 관문을 전부 함께 넘어줘서 고마워." },
   { speaker: "jaehoon", expression: "determined", text: "앞으로 어떤 바위가 길을 막아도, 내가 옆에서 같이 열게." },
   { speaker: "jaehoon", expression: "heart", text: "나랑… 결혼해 줄래?" },
 ];
 
-const SPEAKER_NAME = { seoyeon: "서연 (Seoyeon)", jaehoon: "재훈 (Jaehoon)" };
+// 대화창 배지 (스프라이트 키 → 화면 표기)
+const SPEAKER_NAME = { seoyeon: "예비신부", jaehoon: "예비신랑" };
+const SPEAKER_COLOR = { seoyeon: "#B8466E", jaehoon: "#2B3A55" };
 
 /* =====================================================================
  *  2. WORLD CONSTANTS
@@ -947,7 +987,7 @@ function DialogBox({ line, typed, onNext, outfit, compact }) {
       style={{ bottom: "max(14px, env(safe-area-inset-bottom, 0px))", width: "min(880px, calc(100% - 32px))", x: "-50%" }}>
       <div className="wq-dialog" onClick={onNext} role="button" tabIndex={0} aria-label="다음 대사">
         {["tl", "tr", "bl", "br"].map((c) => <span key={c} className={`wq-corner wq-${c}`} />)}
-        <div className="wq-nameplate">{SPEAKER_NAME[line.speaker]}</div>
+        <div className="wq-nameplate" style={{ background: SPEAKER_COLOR[line.speaker] }}>[{SPEAKER_NAME[line.speaker]}]</div>
         <p className="wq-dialog-text" style={{ paddingRight: px * 16 + 18 }}>
           {line.text.slice(0, typed)}
           <span style={{ opacity: 0 }}>{line.text.slice(typed)}</span>
@@ -970,106 +1010,510 @@ function DialogBox({ line, typed, onNext, outfit, compact }) {
   );
 }
 
-function MiniHead({ who, wedding }) {
-  const { grid, palette } = getSprite(who, "front", wedding ? "wedding" : "casual", 0, "smile", true);
-  return <PixelArt grid={grid.slice(0, 15)} palette={palette} px={1.8} />;
+/* ---------- 미니게임용 픽셀 아이콘 ---------- */
+const K = "#2A1C1C";
+const ICONS = {
+  handshake: {
+    pal: { k: K, b: "#4B7BD0", s: "#FFD8B0", S: "#E0A878" },
+    grid: G("kk..........kk", "bbk.kkkkkk.kbb", "bbkkssssssskbb", "bbksSsSsSssskb", "bbksssssssskbb", "bbk.kssssssk..", "kk...kkkkkk..."),
+  },
+  piggy: {
+    pal: { k: K, p: "#F7A6C0", P: "#D9789A", e: K },
+    grid: G("...kkkkkkkk...", "..kppppppppk..", ".kppppppppppk.", "kppeppppppppPk", "kPPkpppppppppk", "kPPkppppppppPk", ".kpppppppppPk.", "..kpkkkkkkpk..", "..kk......kk.."),
+  },
+  goldPiggy: {
+    pal: { k: "#5A3406", p: "#FFC21F", P: "#C98400", e: "#5A3406" },
+    grid: G("......kk......", "...kkkYYkkk...", "..kppppppppk..", ".kppppppppppk.", "kppeppppppppPk", "kPPkpppppppppk", "kPPkppppppppPk", ".kpppppppppPk.", "..kpkkkkkkpk..", "..kk......kk..").map((r) => r.replace(/Y/g, "k")),
+  },
+  key: {
+    pal: { k: K, y: "#FFC21F", Y: "#FFE27A", O: "#C98400" },
+    grid: G(".kkkk.........", "kYyyOk........", "ky..ykkkkkkkkk", "ky..yyyyyyyyyk", "kYyyOkkkkOkOkk", ".kkkk....kk.k."),
+  },
+  ring: {
+    pal: { k: K, c: "#BFE8FF", C: "#7CC8F0", y: "#FFC21F" },
+    grid: G("....kkkk....", "...kcCCck...", "....kcck....", "...kkyykk...", "..kyykkyyk..", ".kyk....kyk.", ".ky......yk.", ".ky......yk.", ".kyk....kyk.", "..kyykkyyk..", "...kkkkkk..."),
+  },
+  wingCoin: {
+    pal: { k: K, w: "#FFFFFF", y: "#FFC21F", Y: "#FFE27A", O: "#C98400" },
+    grid: G("k.....kkkk.....k", "kwk..kYyyOk..kwk", "kwwkkYyOyyOkkwwk", ".kwwkyyOyyOkwwk.", "..kkkyOOOyOkkk..", ".....kyyyyOk....", "......kkkkk....."),
+  },
+  houseHand: {
+    pal: { k: K, r: "#D84A3A", c: "#F5E6C8", b: "#7CC8F0", f: "#8B5A2B", s: "#FFD8B0" },
+    grid: G("......kk......", ".....krrk.....", "....krrrrk....", "...krrrrrrk...", "..krrrrrrrrk..", "...kcccccck...", "...kcbbcfck...", "...kccccfck...", "kk.kkkkkkkk.kk", "kssksssssssssk", ".ksssssssssk..", "..kkkkkkkkk..."),
+  },
+  basket: {
+    pal: { k: K, G: "#4FAE3A", R: "#E0453A", T: "#C8955A", t: "#A87440" },
+    grid: G("....kkkkkk....", "...k......k...", "..kGGkRRkGGk..", ".kGGGkRRRkGGk.", "kkkkkkkkkkkkkk", "kTtTtTtTtTtTtk", ".ktTtTtTtTtTk.", ".kTtTtTtTtTtk.", "..kkkkkkkkkk.."),
+  },
+  sprout: {
+    pal: { k: K, G: "#4FAE3A", T: "#D07A4A", t: "#A85A30", Y: "#FFE27A", y: "#FFC21F", O: "#C98400" },
+    grid: G("...kk..kk.....", "..kGGkkGGk....", "...kGkGGk.....", ".....kGk......", "..kkkkkkkk.kkk", "..kTTTTTTkkYyk", "...kTtTTk.kyOk", "...kTTTTk..kk.", "....kkkk......"),
+  },
+  moneyBag: {
+    pal: { k: K, T: "#8B5A2B", b: "#F2C14E", B: "#A8701A" },
+    grid: G("...kk..kk...", "....kTTk....", "....kkkk....", "...kbbbbk...", "..kbbBBbbk..", ".kbbBbbbbbk.", ".kbbbBBbbbk.", ".kbbbbbBbbk.", ".kbbBBBbbbk.", ".kBbbbbbbBk.", "..kkkkkkkk.."),
+  },
+  apt: {
+    pal: { k: K, A: "#D9B07A", w: "#8FD0F8", f: "#8B5A2B" },
+    grid: G("kkkkkkkkkkkk", "kAwAwAAwAwAk", "kAAAAAAAAAAk", "kAwAwAAwAwAk", "kAAAAAAAAAAk", "kAwAwAAwAwAk", "kAAAAAAAAAAk", "kAwAwAAwAwAk", "kAAAAffAAAAk", "kAAAAffAAAAk", "kkkkkkkkkkkk"),
+  },
+  heart: {
+    pal: { k: K, r: "#D83838", R: "#FF7A7A" },
+    grid: G(".kk.kk.", "kRrkrrk", "krrrrrk", ".krrrk.", "..krk..", "...k..."),
+  },
+};
+const Icon = ({ name, px = 2, style }) => <PixelArt grid={ICONS[name].grid} palette={ICONS[name].pal} px={px} style={style} />;
+
+function ApartmentArt({ variant = 0 }) {
+  const v = [
+    { wall: "#E07848", shade: "#B85A30", roof: "#7A3A20" },
+    { wall: "#A8B4CC", shade: "#7C88A2", roof: "#4A5468" },
+    { wall: "#F0D8B0", shade: "#C8A878", roof: "#C04838" },
+  ][variant % 3];
+  const { out } = useRects((r) => {
+    r(0, 0, 64, 48, "#8FD0F8"); r(0, 0, 64, 10, "#B8E4FC");
+    r(6, 6, 10, 3, "#FFFFFF"); r(8, 4, 6, 2, "#FFFFFF"); r(44, 9, 12, 3, "#FFFFFF"); r(47, 7, 6, 2, "#FFFFFF");
+    r(2, 22, 12, 22, "#9DB8D8"); r(50, 18, 12, 26, "#9DB8D8");
+    for (let y = 24; y < 42; y += 5) { r(5, y, 2, 2, "#D8E8F8"); r(9, y, 2, 2, "#D8E8F8"); r(53, y - 2, 2, 2, "#D8E8F8"); r(57, y - 2, 2, 2, "#D8E8F8"); }
+    r(17, 9, 30, 36, K); r(18, 10, 28, 35, v.wall); r(18, 10, 28, 3, v.roof); r(40, 13, 6, 32, v.shade);
+    for (let row = 0; row < 6; row++) for (let col = 0; col < 3; col++) { const x = 21 + col * 8, y = 15 + row * 5; r(x, y, 5, 3, K); r(x + 1, y, 3, 2, "#CFEFFF"); }
+    r(29, 39, 6, 6, K); r(30, 40, 4, 5, "#8B5A2B");
+    r(0, 44, 64, 4, "#7CC04A"); r(0, 44, 64, 1, "#5BA03A");
+    [[4, 38], [52, 38]].forEach(([x, y]) => { r(x, y, 10, 7, "#2E7A2A"); r(x + 1, y + 1, 8, 5, "#4FAE3A"); r(x + 2, y + 1, 3, 2, "#7ACB52"); });
+  }, [variant]);
+  return <svg viewBox="0 0 64 48" shapeRendering="crispEdges" style={{ display: "block", width: "100%", height: "auto" }}>{out}</svg>;
 }
 
-function ModalContent({ content }) {
-  if (content.type === "compare") {
-    return (
-      <div>
-        <div className="grid grid-cols-2 border-b-2 border-[#B89A6A]">
-          {[content.left, content.right].map((side, i) => (
-            <div key={i} className={`flex flex-col items-center gap-2 pb-3 ${i === 0 ? "border-r-2 border-[#B89A6A]" : ""}`}>
-              <div className="wq-pixel text-[10px] text-[#3A2414]">{side.title} <span className="wq-ko text-[13px] text-[#7A5530]">{side.sub}</span></div>
-              <div className="flex gap-1 items-end">
-                <MiniHead who="jaehoon" wedding={side.wedding} />
-                <MiniHead who="seoyeon" wedding={side.wedding} />
-              </div>
-              <div className="flex items-center" style={{ width: "70%" }}>
-                {[0, 1, 2].map((d) => (
-                  <React.Fragment key={d}>
-                    <span style={{ width: 10, height: 10, background: d === 0 || side.wedding ? "#E0A040" : "#C8B48E", border: "2px solid #5C4028", borderRadius: 99, flexShrink: 0 }} />
-                    {d < 2 && <span style={{ flex: 1, height: 3, background: "#5C4028" }} />}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        {content.rows.map((row, i) => (
-          <div key={i} className="grid items-center border-b border-[#CDB58A] py-2" style={{ gridTemplateColumns: "1fr auto auto auto 1fr" }}>
-            <span className="wq-ko text-right pr-2 text-[15px] text-[#3A2414]">{row.a}</span>
-            <PixelArt grid={row.aOk ? CHECK : CROSS} px={2} />
-            <span className="wq-pixel text-[8px] text-[#7A5530] px-2">vs</span>
-            <PixelArt grid={row.bOk ? CHECK : CROSS} px={2} />
-            <span className="wq-ko pl-2 text-[15px] text-[#3A2414]">{row.b}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  if (content.type === "checklist") {
-    return (
-      <ul className="flex flex-col gap-2">
-        {content.items.map((it, i) => (
-          <motion.li key={i} initial={{ x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.15 + i * 0.08 }}
-            className="flex items-center gap-3 border-b border-[#CDB58A] pb-2">
-            <span style={{ width: 22, height: 22, border: "3px solid #5C4028", background: it.done ? "#FFF6DC" : "#E8D6B0", display: "grid", placeItems: "center", flexShrink: 0 }}>
-              {it.done && <PixelArt grid={CHECK} px={1.8} />}
-            </span>
-            <span className={`wq-ko text-[16px] ${it.done ? "text-[#3A2414]" : "text-[#9A7A54]"}`}>{it.text}</span>
-            {!it.done && <span className="wq-pixel text-[8px] ml-auto text-[#C25A2A]">TODO</span>}
-          </motion.li>
-        ))}
-      </ul>
-    );
-  }
-  // timeline
+function GaugeArt({ level = 1 }) {
+  const { out } = useRects((r) => {
+    const c = 2, cx = 20, cy = 21, ro = 18, ri = 11;
+    for (let y = 0; y < 22; y += c)
+      for (let x = 0; x < 40; x += c) {
+        const d = Math.hypot(x + 1 - cx, y + 1 - cy);
+        if (d > ro || d < ri || y + 1 > cy) continue;
+        const a = Math.atan2(cy - (y + 1), x + 1 - cx); // π(left) → 0(right)
+        const edge = d > ro - c || d < ri + c;
+        const col = a > (Math.PI * 2) / 3 ? "#48A838" : a > Math.PI / 3 ? "#FFC21F" : "#D83838";
+        r(x, y, c, c, edge ? K : col);
+      }
+    const ang = Math.PI - level * Math.PI * 0.85 - 0.08;
+    for (let t = 0; t < 15; t += 1) r(Math.round(cx + Math.cos(ang) * t) - 1, Math.round(cy - Math.sin(ang) * t) - 1, 2, 2, K);
+    r(cx - 3, cy - 3, 6, 4, K); r(cx - 2, cy - 2, 4, 2, "#8E949C");
+  }, [Math.round(level * 20)]);
+  return <svg width={80} height={44} viewBox="0 0 40 22" shapeRendering="crispEdges" style={{ display: "block" }}>{out}</svg>;
+}
+
+function CoinStacks() {
+  const { out } = useRects((r) => {
+    [[2, 4], [14, 6], [26, 3]].forEach(([x, n]) => {
+      for (let i = 0; i < n; i++) { const y = 30 - i * 4; r(x, y - 1, 12, 5, K); r(x + 1, y, 10, 3, "#FFC21F"); r(x + 1, y, 10, 1, "#FFE27A"); r(x + 9, y, 2, 3, "#C98400"); }
+    });
+  }, []);
+  return <svg width={80} height={70} viewBox="0 0 40 35" shapeRendering="crispEdges" style={{ display: "block" }}>{out}</svg>;
+}
+
+function Bills() {
+  const { out } = useRects((r) => {
+    [[0, 10], [4, 6], [8, 2]].forEach(([x, y]) => {
+      r(x, y, 32, 16, "#1E5A20"); r(x + 1, y + 1, 30, 14, "#58B848"); r(x + 3, y + 3, 26, 10, "#7ACB52"); r(x + 12, y + 4, 8, 8, "#2E8B3A"); r(x + 14, y + 6, 4, 4, "#9AD86A");
+    });
+  }, []);
+  return <svg width={84} height={56} viewBox="0 0 42 28" shapeRendering="crispEdges" style={{ display: "block" }}>{out}</svg>;
+}
+
+function MedalArt() {
+  const { out } = useRects((r) => {
+    r(6, 0, 8, 18, K); r(7, 0, 6, 17, "#D83838"); r(26, 0, 8, 18, K); r(27, 0, 6, 17, "#2878D8");
+    const c = 2, cx = 20, cy = 32;
+    for (let y = 16; y < 50; y += c)
+      for (let x = 4; x < 36; x += c) {
+        const d = Math.hypot(x + 1 - cx, y + 1 - cy);
+        if (d > 15) continue;
+        r(x, y, c, c, d > 13 ? K : d > 11 ? "#C98400" : (x < cx && y < cy) ? "#FFE27A" : "#FFC21F");
+      }
+  }, []);
   return (
-    <ol className="relative flex flex-col gap-3 pl-2">
-      <span className="absolute" style={{ left: 17, top: 8, bottom: 8, width: 4, background: "#5C4028" }} />
-      {content.steps.map((s, i) => (
-        <motion.li key={i} initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 + i * 0.08 }} className="relative flex items-start gap-3">
-          <span style={{ width: 22, height: 22, background: i === content.steps.length - 1 ? "#FF8820" : "#E0A040", border: "3px solid #3A2414", boxShadow: "inset -3px -3px 0 rgba(0,0,0,.18)", flexShrink: 0, zIndex: 1 }} />
-          <div className="min-w-0">
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="wq-pixel text-[9px] text-[#B5521C]">{s.label}</span>
-              <span className="wq-ko text-[16px] text-[#3A2414]">{s.title}</span>
-            </div>
-            <div className="wq-ko text-[13px] text-[#7A5530]">{s.desc}</div>
-          </div>
-        </motion.li>
-      ))}
-    </ol>
+    <div style={{ position: "relative", width: 80, height: 100 }}>
+      <svg width={80} height={100} viewBox="0 0 40 50" shapeRendering="crispEdges" style={{ display: "block" }}>{out}</svg>
+      <div style={{ position: "absolute", left: 25, top: 49 }}><PixelArt grid={G(".....k.....", "....kYk....", "kkkkYYYkkkk", "kYYYYwYYYYk", ".kYYYYYYYk.", "..kYYYYYk..", "..kYYkYYk..", ".kYk...kYk.", ".kk.....kk.")} palette={{ k: "#8A5A10", Y: "#FFF3B0", w: "#FFFFFF" }} px={2.7} /></div>
+    </div>
   );
 }
 
-function QuestModal({ gate, onUnlock }) {
+function Portrait({ look, px = 4 }) {
+  const base = getSprite("jaehoon", "front", "casual", 0, "default", true).grid;
+  let grid, palette;
+  if (look === "doctor") {
+    grid = stamp(base, 7, 3, G("kkkk..kkkk", "k..kkkk..k", "k..k..k..k", "kkkk..kkkk"));
+    palette = { ...PAL, n: "#A4A8B0", N: "#D4D8DE", v: "#F4F6F8", V: "#C8CED8", w: "#8FC4F0" };
+  } else {
+    grid = stamp(base, 10, 6, ["nnnn"]);
+    grid = stamp(grid, 13, 7, ["qq", "qq", "qq", "qq"]);
+    palette = { ...PAL, v: "#2B2B33", V: "#1A1A20" };
+  }
+  return <PixelArt grid={grid} palette={palette} px={px} />;
+}
+
+/* ---------- Gate 1 : 타이밍 밸런스 & 로드맵 퍼즐 ---------- */
+function TimelineGame({ data, onClear }) {
+  const [choice, setChoice] = useState(null);
+  const [shake, setShake] = useState(0);
+  const [placed, setPlaced] = useState([]);
+  const [wrong, setWrong] = useState(null);
+  const tray = useMemo(() => [2, 0, 3, 1].filter((i) => i < data.phases.length), [data]);
+  const picked = data.choices.find((c) => c.key === choice);
+  const correct = !!picked?.correct;
+  const done = correct && placed.length === data.phases.length;
+  useEffect(() => onClear(done), [done]);
+
+  const pick = (c) => { setChoice(c.key); if (!c.correct) setShake((s) => s + 1); };
+  const place = (i) => {
+    if (placed.includes(i)) return;
+    if (i === placed.length) setPlaced([...placed, i]);
+    else { setWrong(i); setTimeout(() => setWrong(null), 500); }
+  };
+
   return (
-    <motion.div className="absolute inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(20,12,6,0.55)", padding: 16 }}
+    <div className="flex flex-col gap-3">
+      <p className="wq-ko text-[16px] text-[#3A2414] text-center">{data.question}</p>
+      <div className="grid grid-cols-2 gap-3">
+        {data.choices.map((c) => {
+          const sel = choice === c.key;
+          return (
+            <motion.button key={c.correct ? c.key : `${c.key}-${shake}`} type="button" onClick={() => pick(c)} className={`wq-card text-left ${sel ? "is-sel" : ""}`}
+              animate={sel && !c.correct ? { x: [0, -8, 8, -6, 6, 0] } : { x: 0 }} transition={{ duration: 0.4 }}>
+              <span className="wq-tag" style={{ background: c.key === "A" ? "#48A838" : "#D83838" }}>{c.key}</span>
+              <div className="wq-ko text-[15px] text-[#3A2414] leading-tight mt-1">[{c.key}] {c.title}</div>
+              <div className="wq-ko text-[12.5px] text-[#7A5530] leading-snug mt-1">"{c.desc}"</div>
+              <AnimatePresence>
+                {sel && (
+                  <motion.span key={`st${shake}`} className="wq-stamp" style={{ borderColor: c.correct ? "#2E8B57" : "#D83838" }}
+                    initial={{ scale: 2.4, opacity: 0, rotate: -20 }} animate={{ scale: 1, opacity: 1, rotate: -8 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 400, damping: 15 }}>
+                    <PixelArt grid={c.correct ? CHECK : CROSS} px={4} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          );
+        })}
+      </div>
+      <AnimatePresence mode="wait">
+        {picked && (
+          <motion.div key={picked.key + shake} initial={{ y: -6, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}
+            className="wq-ko text-center text-[14px] px-3 py-2" style={{ background: picked.correct ? "#E3F4DC" : "#FBE0DC", border: `2px solid ${picked.correct ? "#2E8B57" : "#D83838"}`, color: picked.correct ? "#1E6A3A" : "#A8261E" }}>
+            {picked.feedback}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <p className="wq-ko text-[13px] text-[#8A6640] text-center mt-1">{data.puzzleGuide}</p>
+      <div className="flex justify-center gap-3 min-h-[58px] flex-wrap">
+        {tray.map((i) => !placed.includes(i) && (
+          <motion.button key={i} type="button" onClick={() => place(i)} className="wq-piece" aria-label={`${data.phases[i].label} 카드`}
+            layout animate={wrong === i ? { x: [0, -6, 6, -4, 4, 0], borderColor: "#D83838" } : { x: 0 }} whileHover={{ y: -3 }} whileTap={{ scale: 0.9 }}>
+            <Icon name={data.phases[i].icon} px={2.4} />
+          </motion.button>
+        ))}
+        {placed.length === data.phases.length && <div className="wq-pixel text-[9px] text-[#2E8B57] self-center">ROADMAP COMPLETE!</div>}
+      </div>
+      <div className="relative grid gap-2" style={{ gridTemplateColumns: `repeat(${data.phases.length}, minmax(0, 1fr))` }}>
+        <span className="wq-chain" />
+        {data.phases.map((p, i) => {
+          const filled = placed.includes(i);
+          return (
+            <div key={i} className="flex flex-col items-center gap-1 min-w-0">
+              <div className={`wq-slot ${filled ? "is-filled" : ""} ${i === placed.length ? "is-next" : ""}`}>
+                <AnimatePresence>
+                  {filled && (
+                    <motion.div initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 500, damping: 14 }}>
+                      <Icon name={p.icon} px={3} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <span className="wq-pixel text-[8px] text-[#5C4028]">{p.label}</span>
+              <span className="wq-ko text-[11.5px] leading-tight text-center" style={{ color: filled ? "#3A2414" : "#B49A70", minHeight: 30 }}>{filled ? p.text : "?"}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Gate 2 : 신혼집 매물 카드 ---------- */
+function HousingGame({ data, onClear, selected, onSelect }) {
+  const selIdx = selected ? data.listings.findIndex((l) => l.name === selected.name) : -1;
+  useEffect(() => onClear(selIdx >= 0), [selIdx]);
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="wq-ribbon wq-ko">{data.ribbon}</div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        {data.listings.map((l, i) => {
+          const sel = selIdx === i;
+          return (
+            <motion.div key={i} className="wq-house" animate={{ y: sel ? -6 : 0, opacity: selIdx >= 0 && !sel ? 0.6 : 1 }}
+              style={{ borderColor: sel ? "#FFB800" : "#5C4028", boxShadow: sel ? "0 0 0 3px #FFE27A, 0 6px 0 rgba(0,0,0,.25)" : "0 3px 0 rgba(0,0,0,.2)" }}>
+              <div style={{ border: "2px solid #3A2414" }}><ApartmentArt variant={l.art} /></div>
+              <div className="wq-ko text-[12px] text-[#5C4028] leading-tight">📍 {l.area}</div>
+              <div className="wq-ko text-[13px] text-[#3A2414] leading-tight">{l.name} <span className="text-[#8A6640]">({l.size})</span></div>
+              <div className="wq-price wq-ko">🪙 {l.price}</div>
+              <motion.button type="button" whileTap={{ scale: 0.92 }} onClick={() => onSelect(l)} className="wq-select wq-ko" style={{ background: sel ? "#2E7A2A" : "#48A838" }}>
+                {sel ? data.selectedLabel : data.selectLabel}
+              </motion.button>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Gate 3 : 이자 방어 슬라이더 ---------- */
+function LoanGame({ data, onClear }) {
+  const [v, setV] = useState(0);
+  const trackRef = useRef(null);
+  const done = v >= 100;
+  useEffect(() => onClear(done), [done]);
+  const setFrom = (clientX) => {
+    if (done) return;
+    const r = trackRef.current.getBoundingClientRect();
+    const p = Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100));
+    setV(p >= 96 ? 100 : p);
+  };
+  const onKey = (e) => {
+    if (done) return;
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); e.stopPropagation(); setV((x) => (x + 10 >= 96 ? 100 : x + 10)); }
+    if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); e.stopPropagation(); setV((x) => Math.max(0, x - 10)); }
+  };
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="wq-ko text-[14px] text-[#8A6640] text-center">{data.guide}</p>
+      <div className="px-3">
+        <div ref={trackRef} className="wq-track" role="slider" tabIndex={0} aria-label="이자 방어 레버" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(v)}
+          onKeyDown={onKey}
+          onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setFrom(e.clientX); }}
+          onPointerMove={(e) => { if (e.buttons) setFrom(e.clientX); }}>
+          <div className="wq-track-fill" style={{ width: `${v}%` }} />
+          <motion.div className="wq-lever" style={{ left: `${v}%` }} animate={done ? { scale: [1, 1.2, 1] } : {}} />
+        </div>
+        <div className="flex justify-between mt-1 wq-pixel text-[8px] text-[#8A6640]"><span>0%</span><span>{Math.round(v)}%</span><span>100%</span></div>
+      </div>
+      <div className="grid grid-cols-2">
+        <div className="flex flex-col items-center gap-2 pr-2 text-center" style={{ opacity: 1 - (v / 100) * 0.55, borderRight: "2px solid #B89A6A" }}>
+          <div className="wq-ko text-[14px] text-[#3A2414] leading-tight">{data.planA.title}</div>
+          <div className="relative flex items-end gap-1" style={{ height: 50 }}>
+            {[0, 1].map((i) => (
+              <motion.div key={i} animate={{ y: [0, -8 - i * 3, 0], x: done ? (i ? 40 : -40) : 0, opacity: done ? 0 : 1 }} transition={{ y: { duration: 1 + i * 0.3, repeat: Infinity }, x: { duration: 0.8 }, opacity: { duration: 0.8 } }}>
+                <Icon name="wingCoin" px={2} />
+              </motion.div>
+            ))}
+          </div>
+          <GaugeArt level={1 - v / 100} />
+          <div className="wq-ko text-[12px] text-[#7A5530] leading-snug">{data.planA.detail}</div>
+          <div className="wq-ko text-[13px] text-[#C0302A] leading-snug">{data.planA.warning}</div>
+        </div>
+        <div className="relative flex flex-col items-center gap-2 pl-2 text-center">
+          <div className="wq-ko text-[14px] text-[#3A2414] leading-tight">{data.planB.title}</div>
+          <motion.div style={{ filter: done ? "none" : `grayscale(${1 - v / 100}) brightness(${0.75 + v / 400})`, marginTop: 6 }}
+            animate={done ? { y: [0, -6, 0], filter: ["drop-shadow(0 0 0px #FFC21F)", "drop-shadow(0 0 10px #FFC21F)", "drop-shadow(0 0 0px #FFC21F)"] } : {}} transition={{ duration: 1.2, repeat: Infinity }}>
+            <Icon name="goldPiggy" px={4} />
+          </motion.div>
+          <div className="wq-ko text-[12px] text-[#7A5530] leading-snug">{data.planB.detail}</div>
+          <AnimatePresence>
+            {done && (
+              <motion.div className="wq-green-stamp wq-ko" initial={{ scale: 3, opacity: 0, rotate: 10 }} animate={{ scale: 1, opacity: 1, rotate: -8 }} transition={{ type: "spring", stiffness: 380, damping: 14 }}>
+                [ {data.planB.stamp} ]
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+      <p className="wq-ko text-[11.5px] text-[#9A7A54] text-center">{data.caption}</p>
+    </div>
+  );
+}
+
+/* ---------- Gate 4 : 3개년 예산 배분 ---------- */
+function BudgetGame({ data, onClear }) {
+  const [alloc, setAlloc] = useState(() => data.slots.map(() => 0));
+  const used = alloc.reduce((a, b) => a + b, 0);
+  const left = data.units - used;
+  const done = left === 0 && alloc.every((a) => a >= data.minEach);
+  useEffect(() => onClear(done), [done]);
+  const change = (i, d) => setAlloc((a) => a.map((x, j) => (j === i ? x + d : x)));
+  const inc = (i) => { if (left > 0) change(i, 1); };
+  const dec = (i) => { if (alloc[i] > 0) change(i, -1); };
+  const fill = used / data.units;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-center gap-3">
+        <CoinStacks />
+        <Bills />
+      </div>
+      <p className="wq-ko text-[13px] text-[#8A6640] text-center -mt-1">{data.poolLabel}</p>
+      <div className="flex items-center justify-center gap-1 flex-wrap" aria-label={`남은 예산 칩 ${left}개`}>
+        <span className="wq-ko text-[13px] text-[#5C4028] mr-1">남은 예산 칩</span>
+        {Array.from({ length: data.units }).map((_, i) => (
+          <span key={i} style={{ width: 12, height: 12, borderRadius: 99, border: "2px solid #5A3406", background: i < left ? "#FFC21F" : "#E3D2AE" }} />
+        ))}
+      </div>
+      <div className="flex flex-col gap-2">
+        {data.slots.map((s, i) => (
+          <div key={i} className="wq-alloc">
+            <div className="shrink-0"><Icon name={s.icon} px={2.4} /></div>
+            <div className="min-w-0 flex-1">
+              <div className="wq-ko text-[14px] text-[#3A2414] leading-tight">{s.title}</div>
+              <div className="wq-ko text-[11.5px] text-[#8A6640] leading-tight">{s.sub}</div>
+              <div className="flex gap-[2px] mt-1">
+                {Array.from({ length: data.units }).map((_, j) => (
+                  <span key={j} style={{ flex: 1, height: 8, background: j < alloc[i] ? data.years[i % data.years.length].color : "#E3D2AE", border: "1px solid #5C4028" }} />
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <button type="button" className="wq-pm" style={{ background: "#C8A878" }} onClick={() => dec(i)} aria-label={`${s.title} 줄이기`}>−</button>
+              <span className="wq-pixel text-[9px] w-8 text-center text-[#3A2414]">{alloc[i] * 10}%</span>
+              <button type="button" className="wq-pm" style={{ background: "#48A838", color: "#fff" }} onClick={() => inc(i)} aria-label={`${s.title} 늘리기`}>+</button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-end justify-center gap-4 flex-wrap">
+        <div>
+          <div className="flex items-end gap-2 px-2" style={{ height: 96, borderLeft: "3px solid #3A2414", borderBottom: "3px solid #3A2414" }}>
+            {data.years.map((y, i) => (
+              <div key={i} className="flex justify-center" style={{ width: 64 }}>
+                <motion.div animate={{ height: 6 + fill * [36, 58, 80][i] }} transition={{ type: "spring", stiffness: 120, damping: 14 }}
+                  style={{ width: 26, background: y.color, border: "3px solid #3A2414", boxShadow: "inset -4px 0 0 rgba(0,0,0,.2)" }} />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 px-2 mt-1" style={{ marginLeft: 3 }}>
+            {data.years.map((y, i) => <span key={i} className="wq-ko text-[10.5px] text-[#5C4028] text-center leading-tight" style={{ width: 64 }}>{y.label}</span>)}
+          </div>
+        </div>
+        <AnimatePresence>
+          {done && (
+            <motion.div className="wq-ko text-[13px] px-3 py-2 max-w-[220px]" style={{ background: "#E3F4DC", border: "2px solid #2E8B57", color: "#1E6A3A" }}
+              initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 300, damping: 14 }}>
+              {data.doneBadge}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      {!done && left === 0 && <p className="wq-ko text-[12.5px] text-[#C0302A] text-center mt-3">모든 항목에 최소 {data.minEach * 10}%씩 배분해 주세요!</p>}
+      {!done && left > 0 && <p className="wq-ko text-[12.5px] text-[#8A6640] text-center mt-3">[+] 버튼으로 예산 칩 {left}개를 모두 배분하세요.</p>}
+    </div>
+  );
+}
+
+/* ---------- Gate 5 : 두 아버님 O/X 퀴즈 ---------- */
+function QuizGame({ data, onClear }) {
+  const [round, setRound] = useState(0);
+  const [trust, setTrust] = useState(() => data.judges.map(() => 0));
+  const [hint, setHint] = useState(null);
+  const [lock, setLock] = useState(false);
+  const done = round >= data.rounds.length;
+  useEffect(() => onClear(done), [done]);
+  const q = data.rounds[Math.min(round, data.rounds.length - 1)];
+  const answer = (a) => {
+    if (done || lock) return;
+    if (a === q.answer) {
+      setHint(null);
+      setTrust((t) => t.map((x, i) => (i === q.judge ? 100 : x)));
+      setLock(true);
+      setTimeout(() => { setRound((r) => r + 1); setLock(false); }, 800);
+    } else setHint({ text: q.hint, key: Date.now() });
+  };
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 gap-3">
+        {data.judges.map((j, i) => {
+          const active = !done && q.judge === i;
+          return (
+            <div key={i} className="flex flex-col items-center gap-1">
+              <motion.div className="wq-portrait" style={{ background: j.look === "doctor" ? "#BFE0F0" : "#C8A06A", boxShadow: active ? "0 0 0 3px #FFC21F, 0 0 16px rgba(255,194,31,.7)" : "none" }}
+                animate={trust[i] === 100 ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.5 }}>
+                <Portrait look={j.look} px={4} />
+              </motion.div>
+              <div className="wq-ko text-[12.5px] text-[#3A2414] text-center leading-tight">[ {j.name} ]</div>
+              <div className="flex items-center gap-1 w-full max-w-[150px]">
+                <Icon name="heart" px={2} />
+                <div className="flex-1 relative" style={{ height: 12, background: "#5C2A2A", border: "2px solid #3A2414" }}>
+                  <motion.div animate={{ width: `${trust[i]}%` }} transition={{ duration: 0.6 }} style={{ height: "100%", background: "#D83838" }} />
+                </div>
+                <span className="wq-pixel text-[7px] text-[#D83838] w-8 text-right">{trust[i]}%</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <AnimatePresence mode="wait">
+        {!done ? (
+          <motion.div key={round} initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -30, opacity: 0 }} className="flex flex-col gap-3">
+            <div className="wq-pixel text-[9px] text-[#9A6A3A] text-center">ROUND {round + 1} / {data.rounds.length}</div>
+            <p className="wq-ko text-[14.5px] text-[#3A2414] leading-relaxed px-3 py-2" style={{ background: "#FFF6E0", border: "2px dashed #B89A6A", wordBreak: "keep-all" }}>"{q.text}"</p>
+            <div className="grid grid-cols-2 gap-3">
+              {["O", "X"].map((a) => (
+                <motion.button key={a} type="button" whileTap={{ y: 4 }} onClick={() => answer(a)} className="wq-ox wq-pixel"
+                  style={{ background: a === "O" ? "#2878D8" : "#D83838", boxShadow: `inset 0 -8px 0 ${a === "O" ? "#1A4E98" : "#8E1E1E"}, inset 0 4px 0 rgba(255,255,255,.3), 0 4px 0 #3A2414` }}>
+                  [ {a} ]
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div key="clear" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="wq-ko text-center text-[16px] py-3" style={{ background: "#E3F4DC", border: "2px solid #2E8B57", color: "#1E6A3A" }}>
+            {data.clearText}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {hint && (
+          <motion.div key={hint.key} initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1, x: [0, -5, 5, 0] }} exit={{ opacity: 0 }}
+            className="wq-ko text-[13px] text-center px-3 py-2" style={{ background: "#3A2414", color: "#FFE6B0" }}>
+            ✖ 오답! {hint.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+const GAMES = { timeline: TimelineGame, housing: HousingGame, loan: LoanGame, budget: BudgetGame, quiz: QuizGame };
+
+function QuestModal({ gate, cleared, onClear, onUnlock, selectedHousing, onSelectHousing }) {
+  const Game = GAMES[gate.modal.game];
+  return (
+    <motion.div className="absolute inset-0 z-[60] flex items-center justify-center" style={{ background: "rgba(20,12,6,0.6)", padding: 12 }}
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <motion.div initial={{ scale: 0.5, y: 40, rotate: -2 }} animate={{ scale: 1, y: 0, rotate: 0 }} exit={{ scale: 0.6, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 260, damping: 18 }} className="wq-board" role="dialog" aria-label={gate.modalTitle}>
+        transition={{ type: "spring", stiffness: 260, damping: 18 }} className="wq-board" style={{ width: "min(660px, 100%)" }} role="dialog" aria-label={gate.modal.title}>
         {["tl", "tr", "bl", "br"].map((c) => <span key={c} className={`wq-bracket wq-${c}`} />)}
         <div className="wq-parchment">
-          <div className="wq-pixel text-[9px] text-[#9A6A3A] text-center mb-1">GATE {gate.id} / 5</div>
-          <h2 className="wq-title">{gate.modalTitle}</h2>
-          {gate.modalContent.caption && <p className="wq-ko text-center text-[13px] text-[#8A6640] mb-3">{gate.modalContent.caption}</p>}
-          <ModalContent content={gate.modalContent} />
-          <div className="flex justify-center mt-5 relative">
-            {[[-90, -6], [86, -10], [-70, 26], [96, 22]].map(([x, y], i) => (
+          <div className="wq-pixel text-[9px] text-[#9A6A3A] text-center mb-1">{gate.modal.subtitle}</div>
+          <h2 className="wq-title">{gate.modal.title}</h2>
+          <div className="mt-3">
+            <Game data={gate.modal} onClear={onClear} selected={selectedHousing} onSelect={onSelectHousing} />
+          </div>
+          <div className="flex justify-center mt-6 relative">
+            {cleared && [[-110, -6], [100, -10], [-90, 26], [110, 22]].map(([x, y], i) => (
               <motion.span key={i} className="absolute" style={{ left: "50%", top: 6, x, y, color: "#FFC21F" }}
                 animate={{ opacity: [0, 1, 0], scale: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.35 }}>
                 <Sparkles size={16} strokeWidth={2.5} />
               </motion.span>
             ))}
-            <motion.button className="wq-unlock" onClick={onUnlock} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }}
-              animate={{ boxShadow: ["0 0 0 0 rgba(255,194,31,.0), 0 5px 0 #7A4A08", "0 0 26px 6px rgba(255,194,31,.75), 0 5px 0 #7A4A08", "0 0 0 0 rgba(255,194,31,.0), 0 5px 0 #7A4A08"] }}
-              transition={{ duration: 1.6, repeat: Infinity }}>
-              <span className="wq-pixel">UNLOCK</span>
-              <PixelArt grid={LOCK_OPEN} px={1.6} />
+            <motion.button className="wq-unlock" disabled={!cleared} onClick={onUnlock} whileHover={cleared ? { scale: 1.05 } : {}} whileTap={cleared ? { scale: 0.94 } : {}}
+              animate={cleared
+                ? { boxShadow: ["0 0 0 0 rgba(255,194,31,0), 0 5px 0 #7A4A08", "0 0 26px 6px rgba(255,194,31,.8), 0 5px 0 #7A4A08", "0 0 0 0 rgba(255,194,31,0), 0 5px 0 #7A4A08"] }
+                : { boxShadow: "0 5px 0 #6A5A40" }}
+              transition={cleared ? { duration: 1.4, repeat: Infinity } : { duration: 0.2 }}>
+              {cleared ? (
+                <><span className="wq-ko text-[17px]">관문 잠금 해제</span><PixelArt grid={LOCK_OPEN} px={1.6} /></>
+              ) : (
+                <><PixelArt grid={LOCK} px={1.6} /><span className="wq-ko text-[16px]">미션을 먼저 클리어하세요</span></>
+              )}
             </motion.button>
           </div>
         </div>
@@ -1104,33 +1548,69 @@ function heartPolygon(cx, cy, size) {
   return `polygon(${pts.join(",")})`;
 }
 
-function Finale({ onRestart }) {
-  const bride = getSprite("seoyeon", "front", "wedding", 0, "heart");
-  const groom = getSprite("jaehoon", "front", "wedding", 0, "heart");
+/* ---------- Finale : MASTER REPORT ---------- */
+function MasterReport({ housing, onRestart }) {
+  const R = MASTER_REPORT;
+  const rows = [
+    { icon: "apt", label: R.housingLabel, value: housing ? `${housing.area} ${housing.name} (${housing.size}) · ${housing.price}` : "아직 선택하지 않았어요" },
+    { icon: "moneyBag", label: R.savedLabel, value: R.saved, sub: R.savedSub },
+    { icon: "moneyBag", label: R.persuadeLabel, value: R.persuade, heart: true },
+  ];
   return (
-    <motion.div className="absolute inset-0 z-[80] flex flex-col items-center justify-center gap-6 text-center" style={{ background: "#120A10", padding: 16 }}
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
-      <Petals count={26} />
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 160, damping: 12, delay: 0.3 }} className="relative flex items-end gap-1">
-        <motion.div className="absolute" style={{ left: "50%", top: -46, x: "-50%", color: "#FF4766" }} animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.9, repeat: Infinity }}>
-          <Heart size={40} fill="#FF4766" strokeWidth={0} />
-        </motion.div>
-        <div style={{ position: "relative" }}>
-          <div style={{ position: "absolute", left: 0, top: 0, transform: "scale(2)", transformOrigin: "0 0" }}><Veil view="front" layer="back" /></div>
-          <PixelArt grid={bride.grid} palette={bride.palette} px={4} />
+    <motion.div className="absolute inset-0 z-[80] flex items-center justify-center" style={{ background: "#120A10", padding: 12 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}>
+      <Petals count={22} />
+      <div className="absolute inset-0 pointer-events-none">
+        {[[12, 18], [86, 14], [8, 78], [90, 72], [50, 6]].map(([l, t], i) => (
+          <motion.span key={i} className="absolute" style={{ left: `${l}%`, top: `${t}%`, color: "#FFD23F" }}
+            animate={{ opacity: [0, 1, 0], scale: [0.4, 1.2, 0.4] }} transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.4 }}>
+            <Sparkles size={20} />
+          </motion.span>
+        ))}
+      </div>
+      <motion.div initial={{ scale: 0.3, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 200, damping: 16, delay: 0.25 }}
+        className="wq-board relative z-[2]" style={{ width: "min(560px, 100%)" }} role="dialog" aria-label={R.title}>
+        {["tl", "tr", "bl", "br"].map((c) => <span key={c} className={`wq-bracket wq-${c}`} />)}
+        <div className="wq-parchment">
+          <div className="wq-pixel text-[9px] text-[#9A6A3A] text-center mb-1">{R.subtitle}</div>
+          <h2 className="wq-title">{R.title}</h2>
+          <div className="flex items-center justify-center gap-3 sm:gap-5 mt-2 flex-wrap">
+            <div className="flex items-end gap-1">
+              <Avatar who="seoyeon" outfit="casual" expression="smile" px={4} />
+              <Avatar who="jaehoon" outfit="casual" expression="smile" px={4} />
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <motion.div animate={{ rotate: [-4, 4, -4] }} transition={{ duration: 2.4, repeat: Infinity }}><MedalArt /></motion.div>
+              <div className="wq-ko text-[13px] text-[#8A5A10] text-center">{R.medal}</div>
+            </div>
+          </div>
+          <div className="relative flex flex-col gap-2 mt-4">
+            {rows.map((row, i) => (
+              <motion.div key={i} className="wq-report-row" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.6 + i * 0.15 }}>
+                <div className="shrink-0 relative">
+                  <Icon name={row.icon} px={2.6} />
+                  {row.heart && <div className="absolute -right-2 -bottom-1"><Icon name="heart" px={1.6} /></div>}
+                </div>
+                <div className="min-w-0 flex-1 pr-16">
+                  <div className="wq-ko text-[12px] text-[#8A6640]">{row.label}</div>
+                  <div className="wq-ko text-[15px] text-[#3A2414] leading-tight">{row.value}</div>
+                  {row.sub && <div className="wq-ko text-[11.5px] text-[#8A6640]">{row.sub}</div>}
+                </div>
+              </motion.div>
+            ))}
+            <motion.div className="wq-pass" initial={{ scale: 3.2, opacity: 0, rotate: 10 }} animate={{ scale: 1, opacity: 1, rotate: -14 }} transition={{ delay: 1.3, type: "spring", stiffness: 380, damping: 13 }}>
+              <span className="wq-ko text-[11px]">{R.stampTop}</span>
+              <span className="wq-pixel text-[15px]">{R.stampMain}</span>
+            </motion.div>
+          </div>
+          <div className="flex flex-col items-center gap-2 mt-6">
+            <button type="button" disabled className="wq-next wq-ko cursor-not-allowed">[ {R.nextStage} ]</button>
+            <button type="button" onClick={onRestart} className="wq-ko text-[13.5px] text-[#7A5530] underline underline-offset-4 hover:text-[#3A2414] inline-flex items-center gap-1">
+              <RotateCcw size={14} strokeWidth={2.5} /> {R.restart.replace(/^🔄\s*/, "")}
+            </button>
+          </div>
         </div>
-        <PixelArt grid={groom.grid} palette={groom.palette} px={4} />
       </motion.div>
-      <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }}>
-        <div className="wq-pixel text-[#FFD23F] text-[18px] sm:text-[24px] leading-relaxed" style={{ textShadow: "0 3px 0 #8A3A10" }}>HAPPY EVER AFTER</div>
-        <div className="wq-ko text-[#FFE4EE] text-[18px] mt-3">서연 ♥ 재훈 · 2028 WEDDING</div>
-        <div className="wq-ko text-[#C9A9B8] text-[14px] mt-1">다섯 개의 관문을 모두 열었어요. 앞으로의 길도 함께!</div>
-      </motion.div>
-      <motion.button initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.2 }} whileTap={{ scale: 0.94 }}
-        onClick={onRestart} className="wq-unlock" style={{ gap: 10 }}>
-        <RotateCcw size={18} strokeWidth={3} color="#5A3406" />
-        <span className="wq-ko text-[17px]">처음부터 다시 하기</span>
-      </motion.button>
     </motion.div>
   );
 }
@@ -1189,6 +1669,8 @@ export default function WeddingQuestGame() {
   const [dialog, setDialog] = useState({ kind: "intro", lines: INTRO_DIALOGS, index: 0 });
   const [typed, setTyped] = useState(0);
   const [modalGate, setModalGate] = useState(null);
+  const [modalCleared, setModalCleared] = useState(false);
+  const [selectedHousing, setSelectedHousing] = useState(null);
   const [gates, setGates] = useState(gatesRef.current);
   const [near, setNear] = useState(null);
   const [outfit, setOutfit] = useState("casual");
@@ -1229,14 +1711,14 @@ export default function WeddingQuestGame() {
     const line = dialog.lines[dialog.index];
     if (typed < line.text.length) { setTyped(line.text.length); return; }
     if (dialog.index < dialog.lines.length - 1) { setTyped(0); setDialog({ ...dialog, index: dialog.index + 1 }); return; }
-    if (dialog.kind === "gate") { setModalGate(dialog.gateId); setPhase("modal"); }
+    if (dialog.kind === "gate") { setModalCleared(false); setModalGate(dialog.gateId); setPhase("modal"); }
     else if (dialog.kind === "wedding") setPhase("propose");
     else setPhase("play");
   };
 
   const unlock = () => {
     const id = modalGate;
-    if (id == null) return;
+    if (id == null || !modalCleared) return;
     setModalGate(null);
     setPhase("play");
     updateGate(id, "opening");
@@ -1280,6 +1762,8 @@ export default function WeddingQuestGame() {
     setOutfit("casual");
     setPetals(false);
     setModalGate(null);
+    setModalCleared(false);
+    setSelectedHousing(null);
     if (layerRef.current) layerRef.current.style.clipPath = "";
     openDialog({ kind: "intro", lines: INTRO_DIALOGS });
   };
@@ -1460,14 +1944,14 @@ export default function WeddingQuestGame() {
         </AnimatePresence>
 
         <AnimatePresence>
-          {phase === "modal" && modalGate != null && <QuestModal key="modal" gate={GATE_BY_ID[modalGate]} onUnlock={unlock} />}
+          {phase === "modal" && modalGate != null && <QuestModal key="modal" gate={GATE_BY_ID[modalGate]} cleared={modalCleared} onClear={setModalCleared} onUnlock={unlock} selectedHousing={selectedHousing} onSelectHousing={setSelectedHousing} />}
         </AnimatePresence>
 
         <AnimatePresence>
           {phase === "propose" && (
             <motion.div key="yes" className="absolute left-1/2 z-[60] flex flex-col items-center gap-3" style={{ bottom: "max(48px, env(safe-area-inset-bottom, 0px))", x: "-50%" }}
               initial={{ y: 60, opacity: 0, scale: 0.6 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }} transition={{ type: "spring", stiffness: 240, damping: 14 }}>
-              <div className="wq-bubble" style={{ fontSize: 15 }}>재훈의 프로포즈에 대답해 주세요!</div>
+              <div className="wq-bubble" style={{ fontSize: 15 }}>[예비신랑]의 프로포즈에 대답해 주세요!</div>
               <motion.button className="wq-yes" onClick={accept} whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.92 }}
                 animate={{ boxShadow: ["0 0 0 0 rgba(255,71,102,0), 0 6px 0 #8E1030", "0 0 34px 10px rgba(255,71,102,.7), 0 6px 0 #8E1030", "0 0 0 0 rgba(255,71,102,0), 0 6px 0 #8E1030"] }}
                 transition={{ duration: 1.3, repeat: Infinity }}>
@@ -1479,7 +1963,7 @@ export default function WeddingQuestGame() {
         </AnimatePresence>
       </div>
 
-      <AnimatePresence>{phase === "finale" && <Finale key="fin" onRestart={restart} />}</AnimatePresence>
+      <AnimatePresence>{phase === "finale" && <MasterReport key="fin" housing={selectedHousing} onRestart={restart} />}</AnimatePresence>
     </div>
   );
 }
@@ -1515,9 +1999,38 @@ const CSS = `
 .wq-board .wq-tr { right: -6px; top: -6px; border-left: none; border-bottom: none; }
 .wq-board .wq-bl { left: -6px; bottom: -6px; border-right: none; border-top: none; }
 .wq-board .wq-br { right: -6px; bottom: -6px; border-left: none; border-top: none; }
-.wq-parchment { flex: 1; min-width: 0; overflow-y: auto; background: radial-gradient(ellipse at 50% 40%, #F8EDD4 0%, #F3E5C8 60%, #E6D2A8 100%); border: 3px solid #3A2414; padding: 18px 18px 20px; box-shadow: inset 0 0 18px rgba(120,80,30,.25); }
+.wq-parchment { flex: 1; min-width: 0; overflow-y: auto; overflow-x: hidden; background: radial-gradient(ellipse at 50% 40%, #F8EDD4 0%, #F3E5C8 60%, #E6D2A8 100%); border: 3px solid #3A2414; padding: 18px 18px 20px; box-shadow: inset 0 0 18px rgba(120,80,30,.25); }
 .wq-title { font-family: 'Jua', sans-serif; font-size: clamp(20px, 3vw, 26px); color: #3A2414; text-align: center; margin: 4px 0 8px; line-height: 1.4; text-wrap: balance; }
 .wq-unlock { display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; background: linear-gradient(#FFE88A 0 30%, #FFC21F 30% 75%, #E8A100 75%); color: #5A3406; border: 3px solid #5A3406; border-radius: 4px; font-size: 13px; cursor: pointer; }
 .wq-yes { display: inline-flex; align-items: center; gap: 12px; padding: 16px 30px; background: linear-gradient(#FF8CA2 0 30%, #FF4766 30% 75%, #D92A4E 75%); color: #fff; border: 3px solid #6A0A22; border-radius: 4px; font-size: 18px; cursor: pointer; text-shadow: 0 2px 0 #8E1030; }
+.wq-unlock:disabled { filter: grayscale(.85); opacity: .8; cursor: not-allowed; }
+.wq-card { position: relative; background: #FFF8E8; border: 3px solid #5C4028; padding: 24px 12px 12px; box-shadow: 0 4px 0 rgba(0,0,0,.2); cursor: pointer; min-width: 0; }
+.wq-card.is-sel { background: #FFFDF4; }
+.wq-tag { position: absolute; left: -3px; top: -3px; color: #fff; font-family: 'Press Start 2P', monospace; font-size: 10px; padding: 4px 7px; border: 3px solid #3A2414; }
+.wq-stamp { position: absolute; right: -10px; top: -16px; width: 50px; height: 50px; z-index: 2; display: grid; place-items: center; border: 4px solid; border-radius: 8px; background: rgba(255,255,255,.8); }
+.wq-piece { position: relative; background: #FFF8E8; border: 3px solid #5C4028; padding: 6px 8px; box-shadow: 0 3px 0 rgba(0,0,0,.25); cursor: pointer; }
+.wq-piece::after { content: ''; position: absolute; left: 50%; bottom: -8px; width: 8px; height: 8px; background: #FFF8E8; border-right: 3px solid #5C4028; border-bottom: 3px solid #5C4028; transform: translateX(-50%) rotate(45deg); }
+.wq-slot { width: 100%; max-width: 70px; aspect-ratio: 1; display: grid; place-items: center; position: relative; z-index: 1; background: #A8743E; border: 3px solid #4A2E18; box-shadow: inset 0 -5px 0 rgba(0,0,0,.25), inset 0 3px 0 rgba(255,255,255,.2); }
+.wq-slot.is-filled { background: #C8955A; }
+.wq-slot.is-next { outline: 3px dashed #FFB800; outline-offset: 2px; }
+.wq-chain { position: absolute; left: 12%; right: 12%; top: 28px; height: 8px; z-index: 0; background: repeating-linear-gradient(90deg, #8E949C 0 8px, transparent 8px 12px); border-top: 2px solid #3A3E46; border-bottom: 2px solid #3A3E46; }
+.wq-ribbon { position: relative; z-index: 0; align-self: center; max-width: calc(100% - 40px); background: #8A5A30; color: #FFE6B0; border: 3px solid #3A2414; padding: 8px 16px; font-size: 15px; text-align: center; box-shadow: inset 0 0 0 2px #B07A44, 0 4px 0 rgba(0,0,0,.25); }
+.wq-ribbon::before, .wq-ribbon::after { content: ''; position: absolute; top: 6px; bottom: -8px; width: 16px; background: #2B4A8A; border: 3px solid #3A2414; z-index: -1; }
+.wq-ribbon::before { left: -16px; } .wq-ribbon::after { right: -16px; }
+.wq-house { display: flex; flex-direction: column; gap: 6px; background: #FFF8E8; border: 3px solid; padding: 6px; min-width: 0; }
+.wq-price { background: #1E68D0; color: #fff; border: 2px solid #0E3A80; text-align: center; font-size: 13px; padding: 3px 4px; box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); }
+.wq-select { color: #fff; border: 2px solid #1E5A20; font-size: 12px; padding: 6px 4px; line-height: 1.2; box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); cursor: pointer; }
+.wq-track { position: relative; height: 30px; background: #6E472B; border: 3px solid #2E1A0C; box-shadow: inset 0 4px 0 rgba(0,0,0,.35); cursor: pointer; touch-action: none; }
+.wq-track:focus-visible, .wq-card:focus-visible, .wq-piece:focus-visible, .wq-select:focus-visible, .wq-pm:focus-visible, .wq-ox:focus-visible { outline: 3px solid #FFB800; outline-offset: 3px; }
+.wq-track-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(#FFE27A 0 30%, #FFB800 30% 75%, #D99600 75%); }
+.wq-lever { position: absolute; top: -12px; width: 28px; height: 48px; margin-left: -14px; background: linear-gradient(90deg, #FFE27A 0 30%, #FFB800 30% 72%, #C98400 72%); border: 3px solid #5A3406; box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+.wq-green-stamp { max-width: 210px; border: 4px solid #2E8B57; box-shadow: inset 0 0 0 2px #2E8B57; color: #2E8B57; background: rgba(235,250,238,.9); padding: 6px 10px; font-size: 14px; line-height: 1.3; }
+.wq-alloc { display: flex; align-items: center; gap: 10px; background: #EAD7B0; border: 2px solid #B89A6A; padding: 8px 10px; }
+.wq-pm { width: 30px; height: 30px; display: grid; place-items: center; border: 3px solid #3A2414; font-family: 'Press Start 2P', monospace; font-size: 12px; color: #3A2414; box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); cursor: pointer; }
+.wq-portrait { border: 4px solid #5C4028; padding: 6px 12px 0; box-shadow: inset 0 0 0 2px #E8D2AE; }
+.wq-ox { border: 3px solid #3A2414; color: #fff; font-size: clamp(18px, 4vw, 26px); padding: 18px 0; cursor: pointer; text-shadow: 0 3px 0 rgba(0,0,0,.35); }
+.wq-report-row { display: flex; align-items: center; gap: 12px; background: #EAD7B0; border: 2px solid #B89A6A; padding: 8px 12px; }
+.wq-pass { position: absolute; right: 4px; top: 50%; margin-top: -46px; width: 92px; height: 92px; border-radius: 999px; border: 5px double #D0302A; color: #D0302A; background: rgba(255,240,236,.6); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.5; pointer-events: none; }
+.wq-next { background: #58B848; color: #fff; border: 3px solid #1E5A20; padding: 12px 16px; font-size: 15px; opacity: .55; box-shadow: inset 0 -4px 0 rgba(0,0,0,.25); }
 @media (prefers-reduced-motion: reduce) { .wq-root * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 `;
